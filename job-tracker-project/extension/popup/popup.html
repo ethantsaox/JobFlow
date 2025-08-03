@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Application Tracker</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+
+        <!-- Login Form -->
+        <div id="loginForm" class="login-form hidden">
+            <div class="header">
+                <h2>Job Application Tracker</h2>
+                <p>Track your job applications with AI insights</p>
+            </div>
+            
+            <form id="loginFormElement">
+                <div class="form-group">
+                    <input type="email" id="email" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn-primary">
+                    <span class="btn-text">Sign In</span>
+                    <div class="btn-spinner hidden"></div>
+                </button>
+            </form>
+            
+            <div class="divider">
+                <span>New user?</span>
+            </div>
+            
+            <button id="openWebApp" class="btn-secondary">
+                Create Account
+            </button>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div id="dashboard" class="dashboard hidden">
+            <div class="header">
+                <h2>Job Tracker</h2>
+                <div class="user-menu">
+                    <span id="userName">User</span>
+                    <button id="refreshBtn" class="btn-refresh" title="Refresh">⟳</button>
+                    <button id="logoutBtn" class="btn-logout">Logout</button>
+                </div>
+            </div>
+
+            <!-- Stats Section -->
+            <div class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalApps">0</div>
+                    <div class="stat-label">Total Applications</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="currentStreak">0</div>
+                    <div class="stat-label">Day Streak</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="todayApps">0</div>
+                    <div class="stat-label">Today</div>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="progress-section">
+                <div class="progress-header">
+                    <span>Daily Goal Progress</span>
+                    <span id="progressText">0/5</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="actions-section">
+                <button id="trackJobBtn" class="btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    Track Current Job
+                </button>
+                
+                <div class="action-row">
+                    <button id="openDashboard" class="btn-secondary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                        </svg>
+                        Dashboard
+                    </button>
+                    
+                    <button id="openGamification" class="btn-secondary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                        Goals
+                    </button>
+                    
+                    <button id="openAnalytics" class="btn-secondary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zm14 2a4 4 0 0 1 4-4h6v18h-7a3 3 0 0 0-3 3z"/>
+                        </svg>
+                        Analytics
+                    </button>
+                </div>
+            </div>
+
+            <!-- Achievement Preview -->
+            <div class="achievement-section">
+                <div class="section-header">
+                    <h3>🏆 Recent Achievement</h3>
+                    <button id="viewAllAchievements" class="view-all-btn">View All</button>
+                </div>
+                <div id="recentAchievement" class="achievement-preview">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Goal Setting -->
+            <div class="goal-section">
+                <div class="section-header">
+                    <h3>🎯 Daily Goal</h3>
+                    <button id="editGoalBtn" class="edit-btn">Edit</button>
+                </div>
+                <div id="goalDisplay" class="goal-display">
+                    <span id="dailyGoalText">5 applications/day</span>
+                </div>
+                <div id="goalEdit" class="goal-edit hidden">
+                    <input type="number" id="goalInput" min="1" max="20" value="5">
+                    <div class="goal-edit-actions">
+                        <button id="saveGoalBtn" class="btn-small btn-primary">Save</button>
+                        <button id="cancelGoalBtn" class="btn-small btn-secondary">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Applications -->
+            <div class="recent-section">
+                <h3>Recent Applications</h3>
+                <div id="recentApps" class="recent-apps">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Error/Success Messages -->
+        <div id="message" class="message hidden">
+            <span id="messageText"></span>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

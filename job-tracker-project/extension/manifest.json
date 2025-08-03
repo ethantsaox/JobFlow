@@ -1,0 +1,76 @@
+{
+  "manifest_version": 3,
+  "name": "Job Application Tracker - AI Powered",
+  "version": "1.0.1",
+  "description": "One-click job application tracking with AI insights. Track applications from LinkedIn, Indeed, Glassdoor and more. Never lose track of your job search again!",
+  "author": "Job Tracker Team",
+  "homepage_url": "https://github.com/your-username/job-tracker-project",
+  
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  
+  "host_permissions": [
+    "https://*.linkedin.com/*",
+    "https://*.indeed.com/*",
+    "https://*.glassdoor.com/*",
+    "https://*.jobs.google.com/*",
+    "https://*.dice.com/*",
+    "https://*.monster.com/*",
+    "https://*.ziprecruiter.com/*",
+    "https://*.stackoverflow.com/*",
+    "https://*.angel.co/*",
+    "https://*.wellfound.com/*",
+    "https://localhost:8000/*",
+    "http://localhost:8000/*",
+    "https://your-api-domain.com/*"
+  ],
+  
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.linkedin.com/jobs/*",
+        "https://*.indeed.com/*",
+        "https://*.glassdoor.com/*",
+        "https://*.jobs.google.com/*",
+        "https://*.dice.com/*",
+        "https://*.monster.com/*",
+        "https://*.ziprecruiter.com/*",
+        "https://*.stackoverflow.com/jobs/*",
+        "https://*.angel.co/jobs/*",
+        "https://*.wellfound.com/jobs/*"
+      ],
+      "js": ["content/content-script.js"],
+      "css": ["content/content-script.css"]
+    }
+  ],
+  
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Job Application Tracker",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["content/injected-button.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

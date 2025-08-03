@@ -1,0 +1,30 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1E40AF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="url(#gradient)" stroke="#ffffff" stroke-width="2"/>
+  
+  <!-- Briefcase icon -->
+  <rect x="35" y="45" width="58" height="38" rx="4" fill="#ffffff" stroke="none"/>
+  <rect x="35" y="45" width="58" height="8" fill="#E5E7EB"/>
+  
+  <!-- Handle -->
+  <rect x="58" y="38" width="12" height="7" rx="2" fill="#ffffff" stroke="none"/>
+  
+  <!-- Target/tracking elements -->
+  <circle cx="85" cy="35" r="8" fill="#10B981" stroke="#ffffff" stroke-width="2"/>
+  <circle cx="85" cy="35" r="3" fill="#ffffff"/>
+  
+  <!-- Application count indicator -->
+  <rect x="42" y="60" width="6" height="2" fill="#3B82F6"/>
+  <rect x="42" y="65" width="8" height="2" fill="#3B82F6"/>
+  <rect x="42" y="70" width="4" height="2" fill="#3B82F6"/>
+  
+  <!-- Checkmark -->
+  <path d="M75 62 L78 65 L83 58" stroke="#10B981" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

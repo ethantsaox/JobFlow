@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+    <style>
+        canvas { border: 1px solid #ccc; margin: 10px; }
+        .icon-row { display: flex; align-items: center; margin: 20px 0; }
+        .icon-info { margin-left: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Job Tracker Extension Icons</h1>
+    <p>Right-click each icon to save as PNG</p>
+    
+    <div class="icon-row">
+        <canvas id="icon16" width="16" height="16"></canvas>
+        <div class="icon-info">
+            <strong>16x16</strong> - Extension toolbar icon<br>
+            <button onclick="downloadIcon('icon16', 'icon-16.png')">Download</button>
+        </div>
+    </div>
+    
+    <div class="icon-row">
+        <canvas id="icon48" width="48" height="48"></canvas>
+        <div class="icon-info">
+            <strong>48x48</strong> - Extension management page<br>
+            <button onclick="downloadIcon('icon48', 'icon-48.png')">Download</button>
+        </div>
+    </div>
+    
+    <div class="icon-row">
+        <canvas id="icon128" width="128" height="128"></canvas>
+        <div class="icon-info">
+            <strong>128x128</strong> - Chrome Web Store<br>
+            <button onclick="downloadIcon('icon128', 'icon-128.png')">Download</button>
+        </div>
+    </div>
+
+    <script>
+        function drawIcon(canvas, scale = 1) {
+            const ctx = canvas.getContext('2d');
+            const size = canvas.width;
+            const center = size / 2;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Background circle with gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#3B82F6');
+            gradient.addColorStop(1, '#1E40AF');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(center, center, center - 2, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // White border
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Briefcase
+            const briefcaseWidth = size * 0.45;
+            const briefcaseHeight = size * 0.3;
+            const briefcaseX = center - briefcaseWidth / 2;
+            const briefcaseY = center - briefcaseHeight / 2 + size * 0.05;
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(briefcaseX, briefcaseY, briefcaseWidth, briefcaseHeight);
+            
+            // Briefcase top (darker)
+            ctx.fillStyle = '#E5E7EB';
+            ctx.fillRect(briefcaseX, briefcaseY, briefcaseWidth, briefcaseHeight * 0.2);
+            
+            // Handle (only for larger icons)
+            if (size >= 32) {
+                const handleWidth = briefcaseWidth * 0.25;
+                const handleHeight = size * 0.08;
+                const handleX = center - handleWidth / 2;
+                const handleY = briefcaseY - handleHeight;
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(handleX, handleY, handleWidth, handleHeight);
+            }
+            
+            // Green indicator (only for larger icons)
+            if (size >= 32) {
+                const indicatorRadius = size * 0.08;
+                const indicatorX = center + briefcaseWidth * 0.4;
+                const indicatorY = center - briefcaseHeight * 0.6;
+                
+                ctx.fillStyle = '#10B981';
+                ctx.beginPath();
+                ctx.arc(indicatorX, indicatorY, indicatorRadius, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // White dot in center
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(indicatorX, indicatorY, indicatorRadius * 0.4, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            
+            // Application lines (only for 48px and larger)
+            if (size >= 48) {
+                ctx.fillStyle = '#3B82F6';
+                ctx.fillRect(briefcaseX + briefcaseWidth * 0.15, briefcaseY + briefcaseHeight * 0.4, briefcaseWidth * 0.3, 2);
+                ctx.fillRect(briefcaseX + briefcaseWidth * 0.15, briefcaseY + briefcaseHeight * 0.6, briefcaseWidth * 0.4, 2);
+                ctx.fillRect(briefcaseX + briefcaseWidth * 0.15, briefcaseY + briefcaseHeight * 0.8, briefcaseWidth * 0.2, 2);
+            }
+        }
+        
+        function downloadIcon(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // Draw all icons
+        drawIcon(document.getElementById('icon16'));
+        drawIcon(document.getElementById('icon48'));
+        drawIcon(document.getElementById('icon128'));
+    </script>
+</body>
+</html>

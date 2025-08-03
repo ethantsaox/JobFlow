@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Promotional Image Generator</title>
+    <style>
+        canvas { border: 1px solid #ccc; margin: 10px; }
+        .promo-container { text-align: center; margin: 20px; }
+        button { margin: 10px; padding: 10px 20px; background: #3B82F6; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Job Tracker Extension - Promotional Images</h1>
+    
+    <div class="promo-container">
+        <h3>Chrome Web Store Promo Tile (440x280)</h3>
+        <canvas id="promoTile" width="440" height="280"></canvas><br>
+        <button onclick="downloadImage('promoTile', 'promo-tile-440x280.png')">Download</button>
+    </div>
+    
+    <div class="promo-container">
+        <h3>Feature Highlight Banner (1280x400)</h3>
+        <canvas id="featureBanner" width="1280" height="400"></canvas><br>
+        <button onclick="downloadImage('featureBanner', 'feature-banner-1280x400.png')">Download</button>
+    </div>
+
+    <script>
+        function createPromoTile() {
+            const canvas = document.getElementById('promoTile');
+            const ctx = canvas.getContext('2d');
+            
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#3B82F6');
+            gradient.addColorStop(1, '#1E40AF');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Title
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 32px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Job Application Tracker', canvas.width/2, 50);
+            
+            // Subtitle
+            ctx.font = '18px Arial';
+            ctx.fillText('AI-Powered Job Search Organization', canvas.width/2, 80);
+            
+            // Features
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'left';
+            const features = [
+                '✓ One-click job tracking from any site',
+                '✓ AI-powered application insights',
+                '✓ Visual pipeline management',
+                '✓ Interview scheduling & tracking',
+                '✓ Never lose track of applications again'
+            ];
+            
+            features.forEach((feature, index) => {
+                ctx.fillText(feature, 40, 130 + (index * 25));
+            });
+            
+            // Icon representation
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(350, 120, 60, 40);
+            ctx.fillStyle = '#10B981';
+            ctx.beginPath();
+            ctx.arc(390, 130, 8, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+        
+        function createFeatureBanner() {
+            const canvas = document.getElementById('featureBanner');
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#F8FAFC';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Header section
+            const headerGradient = ctx.createLinearGradient(0, 0, canvas.width, 100);
+            headerGradient.addColorStop(0, '#3B82F6');
+            headerGradient.addColorStop(1, '#1E40AF');
+            ctx.fillStyle = headerGradient;
+            ctx.fillRect(0, 0, canvas.width, 100);
+            
+            // Title
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 48px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Transform Your Job Search', canvas.width/2, 65);
+            
+            // Feature sections
+            const features = [
+                {
+                    title: 'One-Click Tracking',
+                    desc: 'Track jobs from LinkedIn, Indeed, Glassdoor & more',
+                    x: canvas.width * 0.2,
+                    icon: '📝'
+                },
+                {
+                    title: 'AI Insights',
+                    desc: 'Get intelligent recommendations and match scores',
+                    x: canvas.width * 0.5,
+                    icon: '🤖'
+                },
+                {
+                    title: 'Visual Pipeline',
+                    desc: 'Kanban board and timeline views for easy management',
+                    x: canvas.width * 0.8,
+                    icon: '📊'
+                }
+            ];
+            
+            features.forEach(feature => {
+                // Icon
+                ctx.font = '48px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#3B82F6';
+                ctx.fillText(feature.icon, feature.x, 180);
+                
+                // Title
+                ctx.font = 'bold 24px Arial';
+                ctx.fillStyle = '#1F2937';
+                ctx.fillText(feature.title, feature.x, 220);
+                
+                // Description
+                ctx.font = '16px Arial';
+                ctx.fillStyle = '#6B7280';
+                const words = feature.desc.split(' ');
+                const lines = [];
+                let currentLine = words[0];
+                
+                for (let i = 1; i < words.length; i++) {
+                    const word = words[i];
+                    const width = ctx.measureText(currentLine + ' ' + word).width;
+                    if (width < 200) {
+                        currentLine += ' ' + word;
+                    } else {
+                        lines.push(currentLine);
+                        currentLine = word;
+                    }
+                }
+                lines.push(currentLine);
+                
+                lines.forEach((line, index) => {
+                    ctx.fillText(line, feature.x, 250 + (index * 20));
+                });
+            });
+            
+            // Call to action
+            ctx.fillStyle = '#3B82F6';
+            ctx.fillRect(canvas.width/2 - 100, 320, 200, 50);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Install Extension', canvas.width/2, 350);
+        }
+        
+        function downloadImage(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // Generate images on load
+        createPromoTile();
+        createFeatureBanner();
+    </script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+/* Job Tracker Extension Styles */
+
+.job-tracker-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 9999;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.job-tracker-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+.job-tracker-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+.job-tracker-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.job-tracker-button svg {
+  flex-shrink: 0;
+}
+
+.job-tracker-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 10000;
+  animation: slideIn 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.job-tracker-notification.success {
+  background: #10b981;
+  color: white;
+}
+
+.job-tracker-notification.error {
+  background: #ef4444;
+  color: white;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Site-specific adjustments */
+
+/* LinkedIn */
+.jobs-unified-top-card .job-tracker-button {
+  margin: 8px 0;
+}
+
+/* Indeed */
+.jobsearch-JobInfoHeader .job-tracker-button {
+  margin: 8px 0;
+}
+
+/* Glassdoor */
+.apply-btn + .job-tracker-button {
+  margin-left: 12px;
+}
+
+/* Streak update notification */
+.job-tracker-streak-update {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 10001;
+  animation: streakPulse 0.5s ease;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+@keyframes streakPulse {
+  0% {
+    transform: scale(0.8) translateX(100%);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) translateX(0);
+  }
+  100% {
+    transform: scale(1) translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Enhanced button states */
+.job-tracker-button.tracking {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  cursor: wait;
+}
+
+.job-tracker-button.success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  animation: successPulse 0.6s ease;
+}
+
+@keyframes successPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Auto-fill detection highlight */
+.job-tracker-auto-detected {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+  border-radius: 4px;
+  animation: detectPulse 2s infinite;
+}
+
+@keyframes detectPulse {
+  0%, 100% { 
+    outline-color: #667eea;
+    outline-width: 2px;
+  }
+  50% { 
+    outline-color: #a855f7;
+    outline-width: 3px;
+  }
+}
+
+/* Company info tooltip */
+.job-tracker-company-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  z-index: 10002;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.job-tracker-company-tooltip.visible {
+  opacity: 1;
+}
