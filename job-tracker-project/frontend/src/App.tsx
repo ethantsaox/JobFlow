@@ -2,6 +2,7 @@ import { FC } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './hooks/useAuth'
+import { DarkModeProvider } from './hooks/useDarkMode'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -23,9 +24,10 @@ const queryClient = new QueryClient({
 const App: FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
-          <div className="min-h-screen bg-gray-50">
+      <DarkModeProvider>
+        <AuthProvider>
+          <Router>
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
             <Routes>
               {/* Public routes */}
               <Route path="/login" element={<Login />} />
@@ -87,9 +89,10 @@ const App: FC = () => {
               {/* 404 fallback */}
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
-          </div>
-        </Router>
-      </AuthProvider>
+            </div>
+          </Router>
+        </AuthProvider>
+      </DarkModeProvider>
     </QueryClientProvider>
   )
 }

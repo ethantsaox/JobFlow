@@ -216,7 +216,6 @@ class JobExtractor {
         const response = await this.sendToBackground('TRACK_JOB', enhancedJobData);
         if (response.success) {
           this.showSuccess();
-          this.updateStreak();
         } else {
           this.showError(response.error || 'Failed to track job');
         }
@@ -341,17 +340,6 @@ class JobExtractor {
     return null;
   }
 
-  updateStreak() {
-    // Visual feedback for streak update
-    const streakIndicator = document.createElement('div');
-    streakIndicator.className = 'job-tracker-streak-update';
-    streakIndicator.innerHTML = '🔥 +1 to your streak!';
-    document.body.appendChild(streakIndicator);
-    
-    setTimeout(() => {
-      streakIndicator.remove();
-    }, 4000);
-  }
 
   async extractJobData() {
     const site = this.getCurrentSite();

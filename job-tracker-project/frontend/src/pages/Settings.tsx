@@ -118,11 +118,11 @@ export default function Settings() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Navbar />
         <main className="max-w-4xl mx-auto py-8 px-4">
           <div className="text-center py-12">
-            <div className="text-lg text-gray-600">Loading settings...</div>
+            <div className="text-lg text-gray-600 dark:text-gray-300">Loading settings...</div>
           </div>
         </main>
       </div>
@@ -130,24 +130,24 @@ export default function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       
       <main className="max-w-4xl mx-auto py-8 px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-600 mt-2">Manage your account preferences and privacy settings</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">Manage your account preferences and privacy settings</p>
         </div>
 
         <div className="space-y-6">
           {/* Notifications */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Notifications</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Notifications</h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900">Daily Summary Email</h3>
-                  <p className="text-sm text-gray-500">Get a daily email with your application progress</p>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Daily Summary Email</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Get a daily email with your application progress</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -156,14 +156,14 @@ export default function Settings() {
                     onChange={(e) => updateNotificationSetting('email_daily_summary', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900">Goal Reminders</h3>
-                  <p className="text-sm text-gray-500">Get reminders when you're behind on your goals</p>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Goal Reminders</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Get reminders when you're behind on your goals</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -172,14 +172,14 @@ export default function Settings() {
                     onChange={(e) => updateNotificationSetting('email_goal_reminders', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900">Weekly Report</h3>
-                  <p className="text-sm text-gray-500">Get a weekly summary of your job search progress</p>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Weekly Report</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Get a weekly summary of your job search progress</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -188,14 +188,14 @@ export default function Settings() {
                     onChange={(e) => updateNotificationSetting('email_weekly_report', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900">Browser Notifications</h3>
-                  <p className="text-sm text-gray-500">Get browser notifications for important updates</p>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Browser Notifications</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Get browser notifications for important updates</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -204,18 +204,18 @@ export default function Settings() {
                     onChange={(e) => updateNotificationSetting('browser_notifications', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
               </div>
             </div>
           </div>
 
           {/* Privacy */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Privacy</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Privacy</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Profile Visibility
                 </label>
                 <select
@@ -226,13 +226,13 @@ export default function Settings() {
                   <option value="private">Private</option>
                   <option value="public">Public</option>
                 </select>
-                <p className="text-sm text-gray-500 mt-1">Control who can see your profile information</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Control who can see your profile information</p>
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900">Analytics Sharing</h3>
-                  <p className="text-sm text-gray-500">Help improve our platform by sharing anonymous usage data</p>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Analytics Sharing</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Help improve our platform by sharing anonymous usage data</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -241,18 +241,18 @@ export default function Settings() {
                     onChange={(e) => updatePrivacySetting('analytics_sharing', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
               </div>
             </div>
           </div>
 
           {/* Preferences */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Preferences</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Preferences</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Theme
                 </label>
                 <select
@@ -267,7 +267,7 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Date Format
                 </label>
                 <select
@@ -282,7 +282,7 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   First Day of Week
                 </label>
                 <select
@@ -296,30 +296,30 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Timezone
                 </label>
                 <input
                   type="text"
                   value={settings.preferences.timezone}
                   readOnly
-                  className="input bg-gray-50"
+                  className="input bg-gray-50 dark:bg-gray-700"
                 />
               </div>
             </div>
           </div>
 
           {/* Danger Zone */}
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-red-200">
-            <h2 className="text-xl font-semibold text-red-900 mb-4">Danger Zone</h2>
-            <div className="bg-red-50 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-red-900 mb-2">Delete Account</h3>
-              <p className="text-sm text-red-700 mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-red-200 dark:border-red-700">
+            <h2 className="text-xl font-semibold text-red-900 dark:text-red-400 mb-4">Danger Zone</h2>
+            <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-red-900 dark:text-red-400 mb-2">Delete Account</h3>
+              <p className="text-sm text-red-700 dark:text-red-300 mb-4">
                 Once you delete your account, there is no going back. All your data will be permanently deleted.
               </p>
               <button
                 onClick={handleDeleteAccount}
-                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
+                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 transition-colors text-sm font-medium"
               >
                 Delete Account
               </button>

@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '../hooks/useAuth'
+import { useDarkMode } from '../hooks/useDarkMode'
 import type { LoginFormData } from '../types/auth'
 
 const loginSchema = z.object({
@@ -13,6 +14,7 @@ const loginSchema = z.object({
 
 export default function Login() {
   const { login, loading } = useAuth()
+  const { isDark } = useDarkMode()
   const navigate = useNavigate()
   const location = useLocation()
   const [serverError, setServerError] = useState<string | null>(null)
@@ -49,20 +51,24 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-primary-100">
-            <span className="text-2xl">💰</span>
+          <div className="mx-auto flex items-center justify-center">
+            <img 
+              src={isDark ? "/src/assets/jobflowdark.png" : "/src/assets/jobflowlight.png"}
+              alt="JobFlow Logo" 
+              className="h-12 w-auto"
+            />
           </div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-            Sign in to your account
+          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
+            Sign in to JobFlow
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-300">
             Or{' '}
             <Link
               to="/register"
-              className="font-medium text-primary-600 hover:text-primary-500"
+              className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
             >
               create a new account
             </Link>
@@ -71,14 +77,14 @@ export default function Login() {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           {serverError && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="text-sm text-red-700">{serverError}</div>
+            <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
+              <div className="text-sm text-red-700 dark:text-red-400">{serverError}</div>
             </div>
           )}
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Email address
               </label>
               <input
@@ -89,12 +95,12 @@ export default function Login() {
                 placeholder="Enter your email"
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Password
               </label>
               <input
@@ -105,14 +111,14 @@ export default function Login() {
                 placeholder="Enter your password"
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password.message}</p>
               )}
             </div>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="text-sm">
-              <a href="#" className="font-medium text-primary-600 hover:text-primary-500">
+              <a href="#" className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
                 Forgot your password?
               </a>
             </div>

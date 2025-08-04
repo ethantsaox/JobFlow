@@ -89,11 +89,11 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Navbar />
         <main className="max-w-4xl mx-auto py-8 px-4">
           <div className="text-center py-12">
-            <div className="text-lg text-gray-600">Loading profile...</div>
+            <div className="text-lg text-gray-600 dark:text-gray-300">Loading profile...</div>
           </div>
         </main>
       </div>
@@ -101,28 +101,28 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       
       <main className="max-w-4xl mx-auto py-8 px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Your Profile</h1>
-          <p className="text-gray-600 mt-2">Manage your account information and preferences</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Profile</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">Manage your account information and preferences</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
           {/* Profile Header */}
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-600">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl font-semibold">
                   {profile?.first_name?.[0]}{profile?.last_name?.[0]}
                 </div>
                 <div className="ml-4">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                     {profile?.first_name} {profile?.last_name}
                   </h2>
-                  <p className="text-gray-600">{profile?.email}</p>
+                  <p className="text-gray-600 dark:text-gray-300">{profile?.email}</p>
                 </div>
               </div>
               <button
@@ -139,10 +139,10 @@ export default function Profile() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Personal Information */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Personal Information</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       First Name
                     </label>
                     {editing ? (
@@ -153,12 +153,12 @@ export default function Profile() {
                         className="input"
                       />
                     ) : (
-                      <p className="text-gray-900">{profile?.first_name}</p>
+                      <p className="text-gray-900 dark:text-white">{profile?.first_name}</p>
                     )}
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Last Name
                     </label>
                     {editing ? (
@@ -169,26 +169,26 @@ export default function Profile() {
                         className="input"
                       />
                     ) : (
-                      <p className="text-gray-900">{profile?.last_name}</p>
+                      <p className="text-gray-900 dark:text-white">{profile?.last_name}</p>
                     )}
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Email
                     </label>
-                    <p className="text-gray-900">{profile?.email}</p>
-                    <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                    <p className="text-gray-900 dark:text-white">{profile?.email}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Email cannot be changed</p>
                   </div>
                 </div>
               </div>
 
               {/* Goal Settings */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Application Goals</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Application Goals</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Daily Goal
                     </label>
                     {editing ? (
@@ -201,12 +201,12 @@ export default function Profile() {
                         className="input"
                       />
                     ) : (
-                      <p className="text-gray-900">{profile?.daily_goal} applications per day</p>
+                      <p className="text-gray-900 dark:text-white">{profile?.daily_goal} applications per day</p>
                     )}
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Weekly Goal
                     </label>
                     {editing ? (
@@ -219,7 +219,7 @@ export default function Profile() {
                         className="input"
                       />
                     ) : (
-                      <p className="text-gray-900">{profile?.weekly_goal} applications per week</p>
+                      <p className="text-gray-900 dark:text-white">{profile?.weekly_goal} applications per week</p>
                     )}
                   </div>
                 </div>
@@ -227,14 +227,14 @@ export default function Profile() {
             </div>
 
             {/* Account Information */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h3>
+            <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-600">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Account Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Member Since
                   </label>
-                  <p className="text-gray-900">
+                  <p className="text-gray-900 dark:text-white">
                     {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
                   </p>
                 </div>
@@ -243,7 +243,7 @@ export default function Profile() {
 
             {/* Save/Cancel buttons */}
             {editing && (
-              <div className="mt-8 pt-6 border-t border-gray-200">
+              <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-600">
                 <div className="flex space-x-3">
                   <button
                     onClick={handleSave}

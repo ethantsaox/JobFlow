@@ -8,6 +8,9 @@ class JobTrackerBackground {
     this.TESTING_MODE = false;
     this.API_BASE_URL = 'http://localhost:8000';
     
+    // Clear any badge immediately
+    chrome.action.setBadgeText({ text: '' });
+    
     this.setupMessageListeners();
     this.setupInstallListener();
   }
@@ -23,6 +26,10 @@ class JobTrackerBackground {
     chrome.runtime.onInstalled.addListener(() => {
       const mode = this.TESTING_MODE ? 'TESTING MODE (No API calls)' : 'PRODUCTION MODE (API calls enabled)';
       console.log(`🎉 Job Application Tracker v1.0.1 installed - ${mode}`);
+      
+      // Clear any badge that might be showing
+      chrome.action.setBadgeText({ text: '' });
+      
       this.initializeExtension();
     });
   }

@@ -1,15 +1,19 @@
-// Job Application Tracker - Popup JavaScript
+// JobFlow Extension - Popup JavaScript
 
 class JobTrackerPopup {
     constructor() {
         this.isAuthenticated = false;
         this.currentUser = null;
         this.stats = null;
+        this.theme = 'light';
         
         this.init();
     }
 
     async init() {
+        // Initialize theme first
+        await this.initTheme();
+        
         // Check authentication status
         await this.checkAuthStatus();
         
@@ -45,6 +49,69 @@ class JobTrackerPopup {
         }, 120000); // 2 minutes
     }
 
+    async initTheme() {
+        // Load saved theme or detect system preference
+        const savedTheme = await this.getStoredTheme();
+        if (savedTheme) {
+            this.theme = savedTheme;
+        } else {
+            // Detect system preference
+            this.theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        
+        this.applyTheme();
+        this.updateLogos();
+    }
+
+    async getStoredTheme() {
+        return new Promise((resolve) => {
+            chrome.storage.local.get(['theme'], (result) => {
+                resolve(result.theme);
+            });
+        });
+    }
+
+    async saveTheme(theme) {
+        return new Promise((resolve) => {
+            chrome.storage.local.set({ theme }, resolve);
+        });
+    }
+
+    applyTheme() {
+        document.body.setAttribute('data-theme', this.theme);
+        this.updateThemeToggle();
+    }
+
+    updateThemeToggle() {
+        const sunIcon = document.querySelector('.sun-icon');
+        const moonIcon = document.querySelector('.moon-icon');
+        
+        if (this.theme === 'dark') {
+            sunIcon?.classList.remove('hidden');
+            moonIcon?.classList.add('hidden');
+        } else {
+            sunIcon?.classList.add('hidden');
+            moonIcon?.classList.remove('hidden');
+        }
+    }
+
+    updateLogos() {
+        const loginLogo = document.getElementById('loginLogo');
+        const dashboardLogo = document.getElementById('dashboardLogo');
+        
+        const logoSrc = this.theme === 'dark' ? 'jobflowdark.png' : 'jobflowlight.png';
+        
+        if (loginLogo) loginLogo.src = logoSrc;
+        if (dashboardLogo) dashboardLogo.src = logoSrc;
+    }
+
+    toggleTheme() {
+        this.theme = this.theme === 'light' ? 'dark' : 'light';
+        this.applyTheme();
+        this.updateLogos();
+        this.saveTheme(this.theme);
+    }
+
     setupEventListeners() {
         // Login form
         const loginForm = document.getElementById('loginFormElement');
@@ -64,6 +131,12 @@ class JobTrackerPopup {
             refreshBtn.addEventListener('click', () => this.handleRefresh());
         }
 
+        // Theme toggle button
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => this.toggleTheme());
+        }
+
         // Track job button
         const trackJobBtn = document.getElementById('trackJobBtn');
         if (trackJobBtn) {
@@ -76,38 +149,12 @@ class JobTrackerPopup {
             openDashboardBtn.addEventListener('click', () => this.openWebPage('/dashboard'));
         }
 
-        // Open gamification button
-        const openGamificationBtn = document.getElementById('openGamification');
-        if (openGamificationBtn) {
-            openGamificationBtn.addEventListener('click', () => this.openWebPage('/gamification'));
+        // Open applications button
+        const openApplicationsBtn = document.getElementById('openApplications');
+        if (openApplicationsBtn) {
+            openApplicationsBtn.addEventListener('click', () => this.openWebPage('/applications'));
         }
 
-        // Open analytics button
-        const openAnalyticsBtn = document.getElementById('openAnalytics');
-        if (openAnalyticsBtn) {
-            openAnalyticsBtn.addEventListener('click', () => this.openWebPage('/analytics'));
-        }
-
-        // Goal editing
-        const editGoalBtn = document.getElementById('editGoalBtn');
-        const saveGoalBtn = document.getElementById('saveGoalBtn');
-        const cancelGoalBtn = document.getElementById('cancelGoalBtn');
-        
-        if (editGoalBtn) {
-            editGoalBtn.addEventListener('click', () => this.startGoalEdit());
-        }
-        if (saveGoalBtn) {
-            saveGoalBtn.addEventListener('click', () => this.saveGoal());
-        }
-        if (cancelGoalBtn) {
-            cancelGoalBtn.addEventListener('click', () => this.cancelGoalEdit());
-        }
-
-        // View achievements
-        const viewAllAchievementsBtn = document.getElementById('viewAllAchievements');
-        if (viewAllAchievementsBtn) {
-            viewAllAchievementsBtn.addEventListener('click', () => this.openWebPage('/gamification'));
-        }
 
         // Create account button
         const openWebAppBtn = document.getElementById('openWebApp');
@@ -348,65 +395,9 @@ class JobTrackerPopup {
         const progressPercent = this.stats.goal_progress_today || 0;
         document.getElementById('progressFill').style.width = `${progressPercent}%`;
 
-        // Update recent applications
-        this.updateRecentApps();
-        
-        // Update goal display
-        this.updateGoalDisplay();
-        
-        // Update achievement preview
-        this.updateAchievementPreview();
     }
 
-    updateRecentApps() {
-        const recentAppsContainer = document.getElementById('recentApps');
-        
-        if (!this.stats.recent_applications || this.stats.recent_applications.length === 0) {
-            recentAppsContainer.innerHTML = '<p style="text-align: center; color: #666; font-size: 12px;">No recent applications</p>';
-            return;
-        }
 
-        const recentAppsHtml = this.stats.recent_applications.slice(0, 3).map(app => `
-            <div class="recent-app">
-                <div class="recent-app-info">
-                    <div class="recent-app-title">${this.escapeHtml(app.title)}</div>
-                    <div class="recent-app-company">${this.escapeHtml(app.company || 'Unknown Company')}</div>
-                </div>
-                <span class="recent-app-status status-${app.status}">${app.status}</span>
-            </div>
-        `).join('');
-
-        recentAppsContainer.innerHTML = recentAppsHtml;
-    }
-
-    updateAchievementPreview() {
-        const achievementContainer = document.getElementById('recentAchievement');
-        
-        if (!this.stats.recent_achievements || this.stats.recent_achievements.length === 0) {
-            achievementContainer.innerHTML = `
-                <div class="no-achievement">
-                    <span class="achievement-icon">🎯</span>
-                    <div class="achievement-text">
-                        <div class="achievement-title">Start tracking jobs to unlock achievements!</div>
-                        <div class="achievement-desc">Your first application is just one click away</div>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        const latestAchievement = this.stats.recent_achievements[0];
-        achievementContainer.innerHTML = `
-            <div class="achievement-item">
-                <span class="achievement-icon">${latestAchievement.icon || '🏆'}</span>
-                <div class="achievement-text">
-                    <div class="achievement-title">${this.escapeHtml(latestAchievement.title)}</div>
-                    <div class="achievement-desc">${this.escapeHtml(latestAchievement.description)}</div>
-                    <div class="achievement-date">Unlocked ${this.formatDate(latestAchievement.unlocked_at)}</div>
-                </div>
-            </div>
-        `;
-    }
 
     formatDate(dateString) {
         if (!dateString) return 'recently';
@@ -433,52 +424,6 @@ class JobTrackerPopup {
         });
     }
 
-    startGoalEdit() {
-        document.getElementById('goalDisplay').classList.add('hidden');
-        document.getElementById('goalEdit').classList.remove('hidden');
-        
-        const currentGoal = this.stats?.daily_goal || 5;
-        document.getElementById('goalInput').value = currentGoal;
-        document.getElementById('goalInput').focus();
-    }
-
-    async saveGoal() {
-        const newGoal = parseInt(document.getElementById('goalInput').value);
-        
-        if (newGoal < 1 || newGoal > 20) {
-            this.showMessage('Goal must be between 1 and 20', 'error');
-            return;
-        }
-
-        try {
-            const response = await this.sendMessageToBackground('UPDATE_GOAL', {
-                dailyGoal: newGoal,
-                weeklyGoal: newGoal * 7
-            });
-
-            if (response.success) {
-                this.stats.daily_goal = newGoal;
-                this.updateGoalDisplay();
-                this.cancelGoalEdit();
-                this.showMessage('Goal updated successfully!', 'success');
-            } else {
-                this.showMessage(response.error || 'Failed to update goal', 'error');
-            }
-        } catch (error) {
-            console.error('Error updating goal:', error);
-            this.showMessage('Failed to update goal', 'error');
-        }
-    }
-
-    cancelGoalEdit() {
-        document.getElementById('goalEdit').classList.add('hidden');
-        document.getElementById('goalDisplay').classList.remove('hidden');
-    }
-
-    updateGoalDisplay() {
-        const goalText = `${this.stats?.daily_goal || 5} applications/day`;
-        document.getElementById('dailyGoalText').textContent = goalText;
-    }
 
     isJobSite(url) {
         const jobSites = [

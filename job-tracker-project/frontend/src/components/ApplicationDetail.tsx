@@ -27,11 +27,11 @@ interface ApplicationDetailProps {
 }
 
 const statusOptions = [
-  { value: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-800' },
-  { value: 'screening', label: 'Screening', color: 'bg-yellow-100 text-yellow-800' },
-  { value: 'interview', label: 'Interview', color: 'bg-purple-100 text-purple-800' },
-  { value: 'offer', label: 'Offer', color: 'bg-green-100 text-green-800' },
-  { value: 'rejected', label: 'Rejected', color: 'bg-red-100 text-red-800' }
+  { value: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
+  { value: 'screening', label: 'Screening', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
+  { value: 'interview', label: 'Interview', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' },
+  { value: 'offer', label: 'Offer', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  { value: 'rejected', label: 'Rejected', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' }
 ]
 
 export default function ApplicationDetail({ applicationId, onClose, onUpdate }: ApplicationDetailProps) {
@@ -194,11 +194,11 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 invisible">
-        <div className="bg-white rounded-lg p-6">
+      <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-60 flex items-center justify-center z-50 invisible">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
           <div className="flex items-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            <span className="ml-3 text-gray-600">Loading application details...</span>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 dark:border-blue-400"></div>
+            <span className="ml-3 text-gray-600 dark:text-gray-300">Loading application details...</span>
           </div>
         </div>
       </div>
@@ -207,10 +207,10 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
 
   if (!application) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6">
+      <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-60 flex items-center justify-center z-50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
           <div className="text-center">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Application Not Found</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Application Not Found</h3>
             <button onClick={onClose} className="btn-primary">Close</button>
           </div>
         </div>
@@ -219,13 +219,13 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full max-w-4xl max-h-screen overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-60 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-4xl max-h-screen overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-600 px-6 py-4 flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{application.title}</h2>
-            <p className="text-gray-600">{application.company?.name || 'Unknown Company'}</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{application.title}</h2>
+            <p className="text-gray-600 dark:text-gray-300">{application.company?.name || 'Unknown Company'}</p>
           </div>
           <div className="flex items-center space-x-3">
             {!isEditing && (
@@ -238,7 +238,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
             )}
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
             >
               ×
             </button>
@@ -247,19 +247,19 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
 
         {/* Error Message */}
         {error && (
-          <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="mx-6 mt-4 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-4">
             <div className="flex">
               <div className="flex-shrink-0">
-                <span className="text-red-400">⚠️</span>
+                <span className="text-red-400 dark:text-red-300">⚠️</span>
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">Error</h3>
-                <div className="mt-2 text-sm text-red-700">{error}</div>
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
+                <div className="mt-2 text-sm text-red-700 dark:text-red-300">{error}</div>
               </div>
               <div className="ml-auto">
                 <button
                   onClick={() => setError(null)}
-                  className="text-red-400 hover:text-red-600"
+                  className="text-red-400 hover:text-red-600 dark:text-red-300 dark:hover:text-red-200"
                 >
                   ×
                 </button>
@@ -274,7 +274,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
             <form onSubmit={handleUpdate} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Job Title *
                   </label>
                   <input
@@ -287,7 +287,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Company Name *
                   </label>
                   <input
@@ -302,7 +302,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Location
                   </label>
                   <input
@@ -314,7 +314,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Status
                   </label>
                   <select
@@ -334,7 +334,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Min Salary
                     </label>
                     <input
@@ -347,7 +347,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Max Salary
                     </label>
                     <input
@@ -362,7 +362,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Source Platform
                   </label>
                   <input
@@ -376,7 +376,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Job Description
                 </label>
                 <textarea
@@ -388,7 +388,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Notes
                 </label>
                 <textarea
@@ -400,7 +400,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
               </div>
 
 
-              <div className="flex justify-end space-x-3 pt-4 border-t">
+              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-600">
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
@@ -420,34 +420,34 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                   {/* Basic Information */}
-                  <div className="bg-gray-50 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Application Details</h3>
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Application Details</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Company</label>
-                        <p className="text-gray-900">{application.company?.name || 'Unknown Company'}</p>
+                        <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Company</label>
+                        <p className="text-gray-900 dark:text-gray-100">{application.company?.name || 'Unknown Company'}</p>
                       </div>
                       {application.location && (
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Location</label>
-                          <p className="text-gray-900">📍 {application.location}</p>
+                          <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Location</label>
+                          <p className="text-gray-900 dark:text-gray-100">📍 {application.location}</p>
                         </div>
                       )}
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Applied Date</label>
-                        <p className="text-gray-900">{new Date(application.applied_date).toLocaleDateString()}</p>
+                        <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Applied Date</label>
+                        <p className="text-gray-900 dark:text-gray-100">{new Date(application.applied_date).toLocaleDateString()}</p>
                       </div>
                       {application.source_platform && (
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Source</label>
+                          <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Source</label>
                           <div className="flex items-center space-x-2">
-                            <p className="text-gray-900">{application.source_platform}</p>
+                            <p className="text-gray-900 dark:text-gray-100">{application.source_platform}</p>
                             {application.source_url && (
                               <a
                                 href={application.source_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm"
+                                className="inline-flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
                               >
                                 🔗 View Original
                               </a>
@@ -460,10 +460,10 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
 
                   {/* Job Description */}
                   {application.description && (
-                    <div className="bg-white border border-gray-200 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Job Description</h3>
+                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Job Description</h3>
                       <div className="max-h-96 overflow-y-auto">
-                        <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{application.description}</p>
+                        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{application.description}</p>
                       </div>
                     </div>
                   )}
@@ -473,9 +473,9 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
                 {/* Sidebar */}
                 <div className="space-y-6">
                   {/* Status */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                     <div className="flex items-center">
-                      <h3 className="text-lg font-semibold text-gray-900 flex-1">Current Status</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex-1">Current Status</h3>
                       <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusBadge(application.status).color}`}>
                         {getStatusBadge(application.status).label}
                       </span>
@@ -483,8 +483,8 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
                   </div>
 
                   {/* Quick Notes */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">📝 Quick Notes</h3>
+                  <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">📝 Quick Notes</h3>
                     <textarea
                       value={formData.notes}
                       onChange={(e) => setFormData({...formData, notes: e.target.value})}
@@ -495,11 +495,11 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
                   </div>
 
                   {/* Salary Info */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">💰 Salary Range</h3>
+                  <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">💰 Salary Range</h3>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Min</label>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Min</label>
                         <input
                           type="number"
                           step="5000"
@@ -511,7 +511,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Max</label>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Max</label>
                         <input
                           type="number"
                           step="5000"

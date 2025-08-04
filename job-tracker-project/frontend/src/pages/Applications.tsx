@@ -28,11 +28,11 @@ interface JobApplication {
 
 
 const statusOptions = [
-  { value: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-800' },
-  { value: 'screening', label: 'Screening', color: 'bg-yellow-100 text-yellow-800' },
-  { value: 'interview', label: 'Interview', color: 'bg-purple-100 text-purple-800' },
-  { value: 'offer', label: 'Offer', color: 'bg-green-100 text-green-800' },
-  { value: 'rejected', label: 'Rejected', color: 'bg-red-100 text-red-800' }
+  { value: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
+  { value: 'screening', label: 'Screening', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
+  { value: 'interview', label: 'Interview', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' },
+  { value: 'offer', label: 'Offer', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  { value: 'rejected', label: 'Rejected', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' }
 ]
 
 export default function Applications() {
@@ -313,7 +313,7 @@ export default function Applications() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       
       <main className="max-w-7xl mx-auto py-6 px-4">
@@ -321,11 +321,11 @@ export default function Applications() {
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
                 <span className="mr-3">📋</span>
                 Job Applications
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 dark:text-gray-300 mt-1">
                 Manage and track your job applications
               </p>
             </div>
@@ -341,14 +341,14 @@ export default function Applications() {
 
           {/* Follow-up Reminders */}
           {!loading && getFollowUpReminders().length > 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 mb-6">
               <div className="flex items-start">
                 <div className="flex-shrink-0">
                   <span className="text-yellow-400 text-xl">⏰</span>
                 </div>
                 <div className="ml-3 w-full">
-                  <h3 className="text-sm font-medium text-yellow-800">Upcoming Follow-ups</h3>
-                  <div className="mt-2 text-sm text-yellow-700">
+                  <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">Upcoming Follow-ups</h3>
+                  <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
                     <div className="space-y-1">
                       {getFollowUpReminders().map(app => {
                         const followUpDate = new Date(app.follow_up_date!)
@@ -373,11 +373,11 @@ export default function Applications() {
           )}
 
           {/* Filters and Search */}
-          <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* Search */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Search
                 </label>
                 <input
@@ -391,7 +391,7 @@ export default function Applications() {
 
               {/* Status Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Status
                 </label>
                 <select
@@ -410,7 +410,7 @@ export default function Applications() {
 
               {/* Sort By */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Sort By
                 </label>
                 <select
@@ -427,7 +427,7 @@ export default function Applications() {
 
               {/* Sort Order */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Order
                 </label>
                 <select
@@ -445,19 +445,19 @@ export default function Applications() {
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4 mb-6">
             <div className="flex">
               <div className="flex-shrink-0">
                 <span className="text-red-400">⚠️</span>
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">Error</h3>
-                <div className="mt-2 text-sm text-red-700">{error}</div>
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
+                <div className="mt-2 text-sm text-red-700 dark:text-red-300">{error}</div>
               </div>
               <div className="ml-auto">
                 <button
                   onClick={() => setError(null)}
-                  className="text-red-400 hover:text-red-600"
+                  className="text-red-400 hover:text-red-600 dark:text-red-300 dark:hover:text-red-400"
                 >
                   ×
                 </button>
@@ -470,16 +470,16 @@ export default function Applications() {
         {loading && (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            <span className="ml-3 text-gray-600">Loading applications...</span>
+            <span className="ml-3 text-gray-600 dark:text-gray-300">Loading applications...</span>
           </div>
         )}
 
         {/* Bulk Actions Bar */}
         {selectedApplications.size > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <span className="text-blue-800 font-medium">
+                <span className="text-blue-800 dark:text-blue-200 font-medium">
                   {selectedApplications.size} application{selectedApplications.size > 1 ? 's' : ''} selected
                 </span>
               </div>
@@ -503,13 +503,13 @@ export default function Applications() {
                 </select>
                 <button
                   onClick={bulkDelete}
-                  className="btn-secondary text-red-600 hover:text-red-800 text-sm"
+                  className="btn-secondary text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm"
                 >
                   Delete Selected
                 </button>
                 <button
                   onClick={() => setSelectedApplications(new Set())}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                 >
                   Clear Selection
                 </button>
@@ -520,12 +520,12 @@ export default function Applications() {
 
         {/* Applications List */}
         {!loading && (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
             {filteredApplications.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">📋</div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No applications found</h3>
-                <p className="text-gray-600 mb-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No applications found</h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
                   {applications.length === 0 
                     ? "Start tracking your job applications by adding your first one."
                     : "Try adjusting your filters to see more results."
@@ -540,44 +540,44 @@ export default function Applications() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         <input
                           type="checkbox"
                           checked={selectedApplications.size === filteredApplications.length && filteredApplications.length > 0}
                           onChange={(e) => handleSelectAll(e.target.checked)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
                         />
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-80">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-80">
                         Position
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-72">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-72">
                         Company
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-60">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-60">
                         Location
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-32">
                         Website
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Applied Date
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
                     {filteredApplications.map((application) => {
                       const statusBadge = getStatusBadge(application.status)
                       return (
                         <tr 
                           key={application.id} 
-                          className="hover:bg-gray-50 cursor-pointer"
+                          className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
                           onClick={(e) => {
                             // Don't open detail if clicking on checkbox or links
                             const target = e.target as HTMLElement;
@@ -597,16 +597,16 @@ export default function Applications() {
                               type="checkbox"
                               checked={selectedApplications.has(application.id)}
                               onChange={(e) => handleSelectApplication(application.id, e.target.checked)}
-                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
                             />
                           </td>
                           <td className="px-6 py-4">
                             <div className="max-w-64 overflow-x-auto scrollbar-hide">
-                              <div className="text-sm font-medium text-gray-900 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
                                 {application.title}
                               </div>
                               {application.salary_text && (
-                                <div className="text-sm text-gray-500 whitespace-nowrap">
+                                <div className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
                                   💰 {application.salary_text}
                                 </div>
                               )}
@@ -614,14 +614,14 @@ export default function Applications() {
                           </td>
                           <td className="px-6 py-4">
                             <div className="max-w-56 overflow-x-auto scrollbar-hide">
-                              <div className="text-sm font-medium text-gray-900 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
                                 {application.company?.name || 'Unknown Company'}
                               </div>
                             </div>
                           </td>
                           <td className="px-6 py-4">
                             <div className="max-w-56 overflow-x-auto scrollbar-hide">
-                              <div className="text-sm text-gray-900 whitespace-nowrap">
+                              <div className="text-sm text-gray-900 dark:text-white whitespace-nowrap">
                                 {application.location || '-'}
                               </div>
                             </div>
@@ -633,16 +633,16 @@ export default function Applications() {
                                   href={application.source_url} 
                                   target="_blank" 
                                   rel="noopener noreferrer"
-                                  className="text-blue-600 hover:text-blue-800 text-sm font-medium whitespace-nowrap"
+                                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium whitespace-nowrap"
                                 >
                                   {application.source_platform}
                                 </a>
                               ) : application.source_platform ? (
-                                <span className="text-sm text-gray-500 whitespace-nowrap">
+                                <span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
                                   {application.source_platform}
                                 </span>
                               ) : (
-                                <span className="text-sm text-gray-400 whitespace-nowrap">-</span>
+                                <span className="text-sm text-gray-400 dark:text-gray-500 whitespace-nowrap">-</span>
                               )}
                             </div>
                           </td>
@@ -651,7 +651,7 @@ export default function Applications() {
                               {statusBadge.label}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {new Date(application.applied_date).toLocaleDateString()}
                           </td>
                         </tr>
@@ -668,13 +668,13 @@ export default function Applications() {
 
       {/* Add Application Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Add New Application</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Add New Application</h2>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-400"
               >
                 ×
               </button>
@@ -683,7 +683,7 @@ export default function Applications() {
             <form onSubmit={handleAddApplication} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Job Title *
                   </label>
                   <input
@@ -696,7 +696,7 @@ export default function Applications() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Company Name *
                   </label>
                   <input
@@ -711,7 +711,7 @@ export default function Applications() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Location
                   </label>
                   <input
@@ -723,7 +723,7 @@ export default function Applications() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Status
                   </label>
                   <select
@@ -742,7 +742,7 @@ export default function Applications() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Salary
                   </label>
                   <input
@@ -755,7 +755,7 @@ export default function Applications() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Source Platform
                   </label>
                   <input
@@ -769,7 +769,7 @@ export default function Applications() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Job Description
                 </label>
                 <textarea
@@ -781,7 +781,7 @@ export default function Applications() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Notes
                 </label>
                 <textarea
@@ -794,7 +794,7 @@ export default function Applications() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Interview Date
                   </label>
                   <input
@@ -806,7 +806,7 @@ export default function Applications() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Follow-up Date
                   </label>
                   <input
@@ -837,13 +837,13 @@ export default function Applications() {
 
       {/* Edit Application Modal */}
       {showEditModal && selectedApplication && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Edit Application</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Edit Application</h2>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-400"
               >
                 ×
               </button>
@@ -852,7 +852,7 @@ export default function Applications() {
             <form onSubmit={handleUpdateApplication} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Job Title *
                   </label>
                   <input
@@ -865,7 +865,7 @@ export default function Applications() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Company Name *
                   </label>
                   <input
@@ -880,7 +880,7 @@ export default function Applications() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Location
                   </label>
                   <input
@@ -892,7 +892,7 @@ export default function Applications() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Status
                   </label>
                   <select
@@ -911,7 +911,7 @@ export default function Applications() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Salary
                   </label>
                   <input
@@ -924,7 +924,7 @@ export default function Applications() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Source Platform
                   </label>
                   <input
@@ -938,7 +938,7 @@ export default function Applications() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Job Description
                 </label>
                 <textarea
@@ -950,7 +950,7 @@ export default function Applications() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Notes
                 </label>
                 <textarea
@@ -963,7 +963,7 @@ export default function Applications() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Interview Date
                   </label>
                   <input
@@ -975,7 +975,7 @@ export default function Applications() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Follow-up Date
                   </label>
                   <input
