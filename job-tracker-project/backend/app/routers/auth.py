@@ -213,7 +213,7 @@ async def forgot_password(
         )
 
 @router.post("/reset-password", response_model=ResetPasswordResponse)
-@limiter.limit("50/minute")  # Temporarily increased for testing
+@limiter.limit("5/minute")  # 5 attempts per minute
 async def reset_password(
     request: Request,
     reset_request: ResetPasswordRequest,
