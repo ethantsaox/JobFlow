@@ -8,9 +8,12 @@ from datetime import datetime, timedelta
 from app.core.database import get_db
 from app.core.security import verify_password, get_password_hash, create_access_token, create_refresh_token
 from app.core.auth import get_current_user
+from app.core.password_reset import PasswordResetService
+from app.core.email import email_service
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin, UserResponse
 from app.schemas.token import Token
+from app.schemas.password_reset import ForgotPasswordRequest, ForgotPasswordResponse, ResetPasswordRequest, ResetPasswordResponse
 from app.core.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -161,4 +164,108 @@ async def refresh_access_token(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials"
+        )
+
+@router.post("/forgot-password", response_model=ForgotPasswordResponse)
+@limiter.limit("3/15minutes")  # 3 requests per 15 minutes per IP
+async def forgot_password(
+    request: Request,
+    forgot_request: ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """Request password reset email"""
+    try:
+        # Find user by email
+        user = db.query(User).filter(User.email == forgot_request.email).first()
+        
+        # Always return success message for security (don't reveal if email exists)
+        success_message = "If an account with that email exists, we've sent a password reset link."
+        
+        if user and user.is_active:
+            # Generate reset token
+            reset_token = PasswordResetService.create_reset_token(db, user)
+            
+            # DEVELOPMENT MODE: Log the token for testing
+            import logging
+            logging.warning(f"🔑 DEVELOPMENT MODE: Reset token for {user.email}: {reset_token}")
+            print(f"🔑 DEVELOPMENT MODE: Reset token for {user.email}: {reset_token}")
+            
+            # Send email
+            email_sent = await email_service.send_password_reset_email(
+                to_email=user.email,
+                reset_token=reset_token,
+                user_name=user.first_name
+            )
+            
+            if not email_sent:
+                # Log error but don't reveal to user
+                import logging
+                logging.error(f"Failed to send password reset email to {user.email}")
+        
+        return ForgotPasswordResponse(message=success_message)
+        
+    except Exception as e:
+        import logging
+        logging.error(f"Error in forgot password: {e}")
+        # Don't reveal internal errors
+        return ForgotPasswordResponse(
+            message="If an account with that email exists, we've sent a password reset link."
+        )
+
+@router.post("/reset-password", response_model=ResetPasswordResponse)
+@limiter.limit("50/minute")  # Temporarily increased for testing
+async def reset_password(
+    request: Request,
+    reset_request: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """Reset password using token from email"""
+    try:
+        # Verify the reset token
+        user = PasswordResetService.verify_reset_token(db, reset_request.token)
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired reset token"
+            )
+        
+        # Validate new password (basic validation - could be enhanced)
+        if len(reset_request.new_password) < 8:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password must be at least 8 characters long"
+            )
+        
+        # Hash new password
+        new_password_hash = get_password_hash(reset_request.new_password)
+        
+        # Update user's password
+        user.hashed_password = new_password_hash
+        user.updated_at = datetime.utcnow()
+        
+        # Mark token as used
+        PasswordResetService.use_reset_token(db, reset_request.token)
+        
+        # Commit changes
+        db.commit()
+        
+        # Send confirmation email
+        await email_service.send_password_change_confirmation(
+            to_email=user.email,
+            user_name=user.first_name
+        )
+        
+        return ResetPasswordResponse(
+            message="Password reset successful. You can now log in with your new password."
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logging.error(f"Error in reset password: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while resetting your password. Please try again."
         )

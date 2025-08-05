@@ -29,6 +29,7 @@ class User(Base):
     job_applications = relationship("JobApplication", back_populates="user", cascade="all, delete-orphan")
     streaks = relationship("Streak", back_populates="user", cascade="all, delete-orphan")
     achievements = relationship("Achievement", back_populates="user", cascade="all, delete-orphan")
+    password_reset_tokens = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email})>"
