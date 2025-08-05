@@ -69,7 +69,7 @@ async def health_check():
     return {"status": "healthy", "message": "API is running"}
 
 # Import routers
-from app.routers import auth, job_applications, companies, analytics, ai
+from app.routers import auth, job_applications, companies, analytics, ai, social
 
 # Include routers
 app.include_router(auth.router, prefix="/api")
@@ -77,6 +77,7 @@ app.include_router(job_applications.router, prefix="/api")
 app.include_router(companies.router, prefix="/api")
 app.include_router(analytics.router, prefix="/api")
 app.include_router(ai.router, prefix="/api")
+app.include_router(social.router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn

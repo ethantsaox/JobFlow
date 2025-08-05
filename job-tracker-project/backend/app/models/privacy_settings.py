@@ -33,9 +33,7 @@ class PrivacySettings(Base):
     show_offer_count = Column(Boolean, default=False, nullable=False)  # More sensitive
     show_rejection_count = Column(Boolean, default=False, nullable=False)  # More sensitive
     
-    # Social interaction settings
-    allow_direct_messages = Column(Boolean, default=True, nullable=False)
-    message_from_friends_only = Column(Boolean, default=True, nullable=False)
+    # Social interaction settings (removed chat functionality)
     
     # Discoverability settings
     discoverable_by_email = Column(Boolean, default=True, nullable=False)
@@ -68,8 +66,6 @@ class PrivacySettings(Base):
             show_interview_count=True,
             show_offer_count=False,
             show_rejection_count=False,
-            allow_direct_messages=True,
-            message_from_friends_only=True,
             discoverable_by_email=True,
             discoverable_by_name=True,
             show_in_friend_suggestions=True
@@ -88,18 +84,18 @@ class PrivacySettings(Base):
         }
         return stat_mapping.get(stat_type, False)
 
-    def can_receive_messages_from(self, is_friend: bool) -> bool:
-        """Check if user can receive messages from someone"""
-        if not self.allow_direct_messages:
-            return False
-        if self.message_from_friends_only and not is_friend:
-            return False
-        return True
+    def is_discoverable_by(self, search_type: str) -> bool:
+        """Check if user can be discovered by a specific search method"""
+        if search_type == "email":
+            return self.discoverable_by_email
+        elif search_type == "name":
+            return self.discoverable_by_name
+        return False
 
     def set_privacy_level(self, level: str):
         """Set privacy to a predefined level"""
         if level == "open":
-            # Very open sharing
+            # Very open sharing for competition
             self.allow_friend_requests = True
             self.show_online_status = True
             self.show_last_seen = True
@@ -111,11 +107,12 @@ class PrivacySettings(Base):
             self.show_interview_count = True
             self.show_offer_count = True
             self.show_rejection_count = False  # Still keep some privacy
-            self.allow_direct_messages = True
-            self.message_from_friends_only = False
+            self.discoverable_by_email = True
+            self.discoverable_by_name = True
+            self.show_in_friend_suggestions = True
             
         elif level == "friends":
-            # Share with friends only (default)
+            # Share with friends only (default) - perfect for competition
             self.allow_friend_requests = True
             self.show_online_status = True
             self.show_last_seen = True
@@ -127,11 +124,12 @@ class PrivacySettings(Base):
             self.show_interview_count = True
             self.show_offer_count = False
             self.show_rejection_count = False
-            self.allow_direct_messages = True
-            self.message_from_friends_only = True
+            self.discoverable_by_email = True
+            self.discoverable_by_name = True
+            self.show_in_friend_suggestions = True
             
         elif level == "private":
-            # Very private
+            # Very private - no competition features
             self.allow_friend_requests = False
             self.show_online_status = False
             self.show_last_seen = False
@@ -143,5 +141,6 @@ class PrivacySettings(Base):
             self.show_interview_count = False
             self.show_offer_count = False
             self.show_rejection_count = False
-            self.allow_direct_messages = False
-            self.message_from_friends_only = True
+            self.discoverable_by_email = False
+            self.discoverable_by_name = False
+            self.show_in_friend_suggestions = False
