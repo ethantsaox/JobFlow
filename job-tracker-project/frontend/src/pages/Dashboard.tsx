@@ -1,5 +1,6 @@
 import { useAuth } from '../hooks/useAuth'
 import Navbar from '../components/Navbar'
+import SocialWidget from '../components/SocialWidget'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { analyticsApi } from '../services/api'
@@ -22,9 +23,12 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [recentAchievements, setRecentAchievements] = useState<any[]>([])
+  const [achievementsLoading, setAchievementsLoading] = useState(true)
 
   useEffect(() => {
     loadStats()
+    loadRecentAchievements()
   }, [])
 
   const loadStats = async () => {
@@ -49,6 +53,88 @@ export default function Dashboard() {
         goal_progress_week: 0,
         status_distribution: {}
       })
+    }
+  }
+
+  const loadRecentAchievements = async () => {
+    try {
+      setAchievementsLoading(true)
+      const token = localStorage.getItem('token')
+      const response = await fetch('http://localhost:8000/api/social/achievements/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        // Get all unlocked achievements and sort by unlock date
+        const allUnlockedAchievements = Object.values(data.by_category)
+          .flat()
+          .filter((achievement: any) => achievement.unlocked && achievement.unlocked_at)
+          .sort((a: any, b: any) => new Date(b.unlocked_at).getTime() - new Date(a.unlocked_at).getTime())
+          .slice(0, 3)
+        
+        setRecentAchievements(allUnlockedAchievements)
+      }
+    } catch (error) {
+      console.error('Error loading recent achievements:', error)
+    } finally {
+      setAchievementsLoading(false)
+    }
+  }
+
+  const getRarityStyle = (rarity: string) => {
+    switch (rarity) {
+      case 'mythic':
+        return {
+          bg: 'bg-gradient-to-br from-purple-600 via-pink-600 to-orange-600 dark:from-purple-700 dark:via-pink-700 dark:to-orange-700',
+          border: 'border-purple-500 dark:border-purple-400',
+          text: 'text-white',
+          glow: 'shadow-lg shadow-purple-500/25',
+          animation: 'animate-pulse'
+        }
+      case 'legendary':
+        return {
+          bg: 'bg-gradient-to-br from-yellow-500 to-orange-600 dark:from-yellow-600 dark:to-orange-700',
+          border: 'border-yellow-400 dark:border-yellow-300',
+          text: 'text-white',
+          glow: 'shadow-lg shadow-yellow-500/25',
+          animation: ''
+        }
+      case 'epic':
+        return {
+          bg: 'bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-600 dark:to-indigo-700',
+          border: 'border-purple-400 dark:border-purple-300',
+          text: 'text-white',
+          glow: 'shadow-md shadow-purple-500/20',
+          animation: ''
+        }
+      case 'rare':
+        return {
+          bg: 'bg-gradient-to-br from-blue-500 to-cyan-600 dark:from-blue-600 dark:to-cyan-700',
+          border: 'border-blue-400 dark:border-blue-300',
+          text: 'text-white',
+          glow: 'shadow-md shadow-blue-500/20',
+          animation: ''
+        }
+      case 'uncommon':
+        return {
+          bg: 'bg-gradient-to-br from-green-500 to-emerald-600 dark:from-green-600 dark:to-emerald-700',
+          border: 'border-green-400 dark:border-green-300',
+          text: 'text-white',
+          glow: 'shadow-sm shadow-green-500/15',
+          animation: ''
+        }
+      case 'common':
+      default:
+        return {
+          bg: 'bg-white dark:bg-gray-700',
+          border: 'border-gray-200 dark:border-gray-600',
+          text: 'text-gray-900 dark:text-white',
+          glow: '',
+          animation: ''
+        }
     }
   }
 
@@ -205,7 +291,7 @@ export default function Dashboard() {
             {/* Gamification Section */}
             <div className="border-t border-gray-200 dark:border-gray-600 pt-6 mt-6">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Your Progress</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 {/* Streak Counter */}
                 <div className="bg-gradient-to-br from-orange-400 to-red-500 rounded-xl p-6 text-white">
                   <div className="flex items-center justify-between">
@@ -224,86 +310,140 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Weekly Goal Progress */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-600">
+                {/* Goals Progress */}
+                <div className="border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-center mb-4">
                     <span className="text-3xl mr-2">🎯</span>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Weekly Goal</h3>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Goals</h3>
                   </div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                      {stats?.applications_this_week || 0} / {stats?.weekly_goal || 25} applications
-                    </span>
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                      {Math.round(stats?.goal_progress_week || 0)}%
-                    </span>
+                  
+                  {/* Daily Goal */}
+                  <div className="mb-6">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Daily Goal</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        {stats?.applications_today || 0} / {stats?.daily_goal || 5} applications today
+                      </span>
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        {Math.round(stats?.goal_progress_today || 0)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mb-2">
+                      <div 
+                        className="bg-gradient-to-r from-blue-400 to-purple-500 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${stats?.goal_progress_today || 0}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-300 text-xs">
+                      {(stats?.goal_progress_today || 0) >= 100 ? 
+                        "✨ Daily goal achieved!" : 
+                        `${Math.max(0, (stats?.daily_goal || 5) - (stats?.applications_today || 0))} more to reach daily goal`
+                      }
+                    </p>
                   </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3 mb-4">
-                    <div 
-                      className="bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full transition-all duration-500"
-                      style={{ width: `${stats?.goal_progress_week || 0}%` }}
-                    ></div>
+
+                  {/* Weekly Goal */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Weekly Goal</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        {stats?.applications_this_week || 0} / {stats?.weekly_goal || 25} applications
+                      </span>
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        {Math.round(stats?.goal_progress_week || 0)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mb-2">
+                      <div 
+                        className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${stats?.goal_progress_week || 0}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-300 text-xs">
+                      {(stats?.goal_progress_week || 0) >= 100 ? 
+                        "🎉 Weekly goal achieved! You're crushing it!" : 
+                        `${Math.max(0, (stats?.weekly_goal || 25) - (stats?.applications_this_week || 0))} more to reach weekly goal`
+                      }
+                    </p>
                   </div>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    {(stats?.goal_progress_week || 0) >= 100 ? 
-                      "🎉 Goal achieved! You're crushing it!" : 
-                      `${Math.max(0, (stats?.weekly_goal || 25) - (stats?.applications_this_week || 0))} more to reach your goal`
-                    }
-                  </p>
                 </div>
+
+                {/* Social Widget */}
+                <SocialWidget />
               </div>
 
               {/* Recent Achievements */}
               <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg p-6">
-                <div className="flex items-center mb-4">
-                  <span className="text-2xl mr-2">🏆</span>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Achievements</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center">
+                    <span className="text-2xl mr-2">🏆</span>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Achievements</h3>
+                  </div>
+                  <button 
+                    onClick={() => navigate('/network?tab=achievements')}
+                    className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
+                  >
+                    View All →
+                  </button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* First Application Achievement */}
-                  <div className={`bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 ${(stats?.total_applications || 0) > 0 ? '' : 'opacity-50'}`}>
-                    <div className="text-center">
-                      <div className="text-2xl mb-2">🚀</div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">First Application</h4>
-                      <p className="text-xs text-gray-600 dark:text-gray-300">
-                        {(stats?.total_applications || 0) > 0 ? 'Started your journey!' : 'Apply to your first job'}
-                      </p>
-                    </div>
+                
+                {achievementsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
                   </div>
-                  
-                  {/* Streak Achievement */}
-                  <div className={`bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 ${(stats?.current_streak || 0) >= 7 ? '' : 'opacity-50'}`}>
-                    <div className="text-center">
-                      <div className="text-2xl mb-2">🔥</div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">Week Warrior</h4>
-                      <p className="text-xs text-gray-600 dark:text-gray-300">
-                        {(stats?.current_streak || 0) >= 7 ? '7 day streak unlocked!' : 'Get a 7 day streak'}
-                      </p>
-                      {(stats?.current_streak || 0) < 7 && (
-                        <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">{stats?.current_streak || 0}/7</p>
-                      )}
-                    </div>
+                ) : recentAchievements.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {recentAchievements.map((achievement, index) => {
+                      const style = getRarityStyle(achievement.rarity)
+                      return (
+                        <div 
+                          key={index}
+                          className={`${style.bg} ${style.border} ${style.glow} ${style.animation} rounded-lg p-4 border transition-all duration-300 hover:scale-105`}
+                        >
+                          <div className="text-center">
+                            <div className="text-2xl mb-2 drop-shadow-sm">
+                              {achievement.icon || '🏆'}
+                            </div>
+                            <div className="flex items-center justify-center gap-1 mb-1">
+                              <h4 className={`font-semibold text-sm ${style.text} drop-shadow-sm`}>
+                                {achievement.title}
+                              </h4>
+                              {achievement.rarity !== 'common' && (
+                                <span className={`px-1 py-0.5 text-xs font-bold rounded-full ${
+                                  achievement.rarity === 'mythic' ? 'bg-white/20 text-white' :
+                                  achievement.rarity === 'legendary' ? 'bg-white/20 text-white' :
+                                  achievement.rarity === 'epic' ? 'bg-white/20 text-white' :
+                                  achievement.rarity === 'rare' ? 'bg-white/20 text-white' :
+                                  'bg-white/20 text-white'
+                                }`}>
+                                  {achievement.rarity.charAt(0).toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+                            <p className={`text-xs mb-1 ${
+                              style.text === 'text-white' ? 'text-white/90' : 'text-gray-600 dark:text-gray-300'
+                            } drop-shadow-sm`}>
+                              {achievement.description}
+                            </p>
+                            <p className={`text-xs ${
+                              style.text === 'text-white' ? 'text-white/75' : 'text-gray-500 dark:text-gray-400'
+                            } drop-shadow-sm`}>
+                              {new Date(achievement.unlocked_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
-                  
-                  {/* Interview Achievement */}
-                  <div className={`bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 ${(stats?.status_distribution?.interview || 0) + (stats?.status_distribution?.offer || 0) >= 5 ? '' : 'opacity-50'}`}>
-                    <div className="text-center">
-                      <div className="text-2xl mb-2">💼</div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">Interview Pro</h4>
-                      <p className="text-xs text-gray-600 dark:text-gray-300">
-                        {(stats?.status_distribution?.interview || 0) + (stats?.status_distribution?.offer || 0) >= 5 
-                          ? 'Got 5+ interviews!' 
-                          : 'Get 5 interviews'
-                        }
-                      </p>
-                      {(stats?.status_distribution?.interview || 0) + (stats?.status_distribution?.offer || 0) < 5 && (
-                        <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">
-                          {(stats?.status_distribution?.interview || 0) + (stats?.status_distribution?.offer || 0)}/5
-                        </p>
-                      )}
-                    </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <span className="text-4xl mb-4 block">🎯</span>
+                    <p className="text-gray-600 dark:text-gray-400 mb-2">No achievements unlocked yet</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-500">
+                      Start applying to jobs to unlock your first achievements!
+                    </p>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
