@@ -38,7 +38,7 @@ class SecuritySettings(BaseSettings):
     
     # Rate Limiting
     rate_limit_per_minute: int = 100
-    login_rate_limit_per_minute: int = 5
+    login_rate_limit_per_minute: int = 20
     
     # Environment
     environment: str = "development"

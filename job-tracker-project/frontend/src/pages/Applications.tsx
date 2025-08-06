@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import ApplicationDetail from '../components/ApplicationDetail'
+import { formatDate } from '../utils/dateUtils'
 
 interface JobApplication {
   id: string
@@ -652,7 +653,7 @@ export default function Applications() {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {new Date(application.applied_date).toLocaleDateString()}
+                            {formatDate(application.applied_date)}
                           </td>
                         </tr>
                       )

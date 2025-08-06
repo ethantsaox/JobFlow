@@ -163,7 +163,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         
         # Different limits for different endpoints
         if endpoint.startswith("/api/auth/login"):
-            limit = 5  # 5 login attempts per minute
+            from app.core.security_config import get_security_settings
+            limit = get_security_settings().login_rate_limit_per_minute
         elif endpoint.startswith("/api/auth/"):
             limit = 10  # 10 auth requests per minute
         else:

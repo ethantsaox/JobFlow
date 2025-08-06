@@ -1,35 +1,23 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import Navbar from '../components/Navbar'
+import api from '../services/api'
 
 interface UserSettings {
-  notifications: {
-    email_daily_summary: boolean
-    email_goal_reminders: boolean
-    email_weekly_report: boolean
-    browser_notifications: boolean
-  }
   privacy: {
-    profile_visibility: 'public' | 'private'
+    profile_visibility: 'public' | 'friends' | 'private'
     analytics_sharing: boolean
   }
   preferences: {
     theme: 'light' | 'dark' | 'auto'
     timezone: string
     date_format: 'MM/DD/YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD'
-    first_day_of_week: 'monday' | 'sunday'
   }
 }
 
 export default function Settings() {
   const { user, logout } = useAuth()
   const [settings, setSettings] = useState<UserSettings>({
-    notifications: {
-      email_daily_summary: true,
-      email_goal_reminders: true,
-      email_weekly_report: true,
-      browser_notifications: false
-    },
     privacy: {
       profile_visibility: 'private',
       analytics_sharing: false
@@ -37,8 +25,7 @@ export default function Settings() {
     preferences: {
       theme: 'light',
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      date_format: 'MM/DD/YYYY',
-      first_day_of_week: 'monday'
+      date_format: 'MM/DD/YYYY'
     }
   })
   const [loading, setLoading] = useState(true)
@@ -51,11 +38,16 @@ export default function Settings() {
   const loadSettings = async () => {
     try {
       setLoading(true)
-      // TODO: Implement actual API call to load user settings
-      // For now, use default settings
-      await new Promise(resolve => setTimeout(resolve, 500)) // Simulate API call
+      const response = await api.get('/api/settings/')
+      setSettings(response.data)
+      
+      // Set global preferences
+      localStorage.setItem('dateFormat', response.data.preferences.date_format)
+      localStorage.setItem('timezone', response.data.preferences.timezone)
+      localStorage.setItem('theme', response.data.preferences.theme)
     } catch (error) {
       console.error('Error loading settings:', error)
+      // Keep default settings on error
     } finally {
       setLoading(false)
     }
@@ -64,25 +56,42 @@ export default function Settings() {
   const handleSave = async () => {
     try {
       setSaving(true)
-      // TODO: Implement actual API call to save settings
-      console.log('Saving settings:', settings)
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
+      
+      // Store current scroll position
+      const currentScrollY = window.scrollY
+      
+      // Prepare update payload
+      const updatePayload = {
+        profile_visibility: settings.privacy.profile_visibility,
+        analytics_sharing: settings.privacy.analytics_sharing,
+        theme: settings.preferences.theme,
+        timezone: settings.preferences.timezone,
+        date_format: settings.preferences.date_format
+      }
+      
+      await api.patch('/api/settings/', updatePayload)
+      
+      // Update global preferences
+      localStorage.setItem('dateFormat', settings.preferences.date_format)
+      localStorage.setItem('timezone', settings.preferences.timezone)
+      localStorage.setItem('theme', settings.preferences.theme)
+      
+      // Show success message (you could add a toast notification here)
+      console.log('Settings saved successfully!')
+      
+      // Reload settings from server to reflect changes in UI
+      await loadSettings()
+      
+      // Restore scroll position
+      window.scrollTo(0, currentScrollY)
     } catch (error) {
       console.error('Error saving settings:', error)
+      // You could show an error toast here
     } finally {
       setSaving(false)
     }
   }
 
-  const updateNotificationSetting = (key: keyof UserSettings['notifications'], value: boolean) => {
-    setSettings(prev => ({
-      ...prev,
-      notifications: {
-        ...prev.notifications,
-        [key]: value
-      }
-    }))
-  }
 
   const updatePrivacySetting = (key: keyof UserSettings['privacy'], value: any) => {
     setSettings(prev => ({
@@ -140,75 +149,6 @@ export default function Settings() {
         </div>
 
         <div className="space-y-6">
-          {/* Notifications */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Notifications</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Daily Summary Email</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Get a daily email with your application progress</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.notifications.email_daily_summary}
-                    onChange={(e) => updateNotificationSetting('email_daily_summary', e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Goal Reminders</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Get reminders when you're behind on your goals</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.notifications.email_goal_reminders}
-                    onChange={(e) => updateNotificationSetting('email_goal_reminders', e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Weekly Report</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Get a weekly summary of your job search progress</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.notifications.email_weekly_report}
-                    onChange={(e) => updateNotificationSetting('email_weekly_report', e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">Browser Notifications</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Get browser notifications for important updates</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.notifications.browser_notifications}
-                    onChange={(e) => updateNotificationSetting('browser_notifications', e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-            </div>
-          </div>
 
           {/* Privacy */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
@@ -223,22 +163,45 @@ export default function Settings() {
                   onChange={(e) => updatePrivacySetting('profile_visibility', e.target.value)}
                   className="input"
                 >
-                  <option value="private">Private</option>
-                  <option value="public">Public</option>
+                  <option value="private">Private - Only you can see your profile</option>
+                  <option value="friends">Friends Only - Only your friends can see your profile</option>
+                  <option value="public">Public - Anyone can see your profile</option>
                 </select>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Control who can see your profile information</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  {settings.privacy.profile_visibility === 'private' && 'Your profile, job applications, and activity are completely hidden from other users.'}
+                  {settings.privacy.profile_visibility === 'friends' && 'Only users you\'ve added as friends can see your profile and achievements.'}
+                  {settings.privacy.profile_visibility === 'public' && 'Your profile and achievements are visible to all JobFlow users (job applications remain private).'}
+                </p>
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-medium text-gray-900 dark:text-white">Analytics Sharing</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Help improve our platform by sharing anonymous usage data</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Help improve our platform by sharing anonymous usage data
+                    {settings.privacy.analytics_sharing && (
+                      <span className="block mt-1 text-xs text-blue-600 dark:text-blue-400">
+                        ✓ Enabled - We collect anonymous usage patterns, feature usage, and performance metrics. No personal information is shared.
+                      </span>
+                    )}
+                  </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
                     checked={settings.privacy.analytics_sharing}
-                    onChange={(e) => updatePrivacySetting('analytics_sharing', e.target.checked)}
+                    onChange={(e) => {
+                      updatePrivacySetting('analytics_sharing', e.target.checked)
+                      if (e.target.checked) {
+                        // Track analytics opt-in event
+                        console.log('User opted into analytics sharing:', {
+                          timestamp: new Date().toISOString(),
+                          userId: user?.id,
+                          userAgent: navigator.userAgent,
+                          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                        })
+                      }
+                    }}
                     className="sr-only peer"
                   />
                   <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -253,21 +216,6 @@ export default function Settings() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Theme
-                </label>
-                <select
-                  value={settings.preferences.theme}
-                  onChange={(e) => updatePreferenceSetting('theme', e.target.value)}
-                  className="input"
-                >
-                  <option value="light">Light</option>
-                  <option value="dark">Dark</option>
-                  <option value="auto">Auto</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Date Format
                 </label>
                 <select
@@ -275,23 +223,9 @@ export default function Settings() {
                   onChange={(e) => updatePreferenceSetting('date_format', e.target.value)}
                   className="input"
                 >
-                  <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                  <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                  <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  First Day of Week
-                </label>
-                <select
-                  value={settings.preferences.first_day_of_week}
-                  onChange={(e) => updatePreferenceSetting('first_day_of_week', e.target.value)}
-                  className="input"
-                >
-                  <option value="monday">Monday</option>
-                  <option value="sunday">Sunday</option>
+                  <option value="MM/DD/YYYY">MM/DD/YYYY (12/31/2024)</option>
+                  <option value="DD/MM/YYYY">DD/MM/YYYY (31/12/2024)</option>
+                  <option value="YYYY-MM-DD">YYYY-MM-DD (2024-12-31)</option>
                 </select>
               </div>
 
@@ -299,12 +233,28 @@ export default function Settings() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Timezone
                 </label>
-                <input
-                  type="text"
+                <select
                   value={settings.preferences.timezone}
-                  readOnly
-                  className="input bg-gray-50 dark:bg-gray-700"
-                />
+                  onChange={(e) => updatePreferenceSetting('timezone', e.target.value)}
+                  className="input"
+                >
+                  <optgroup label="US Timezones">
+                    <option value="America/New_York">Eastern Time (ET)</option>
+                    <option value="America/Chicago">Central Time (CT)</option>
+                    <option value="America/Denver">Mountain Time (MT)</option>
+                    <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                    <option value="America/Anchorage">Alaska Time (AKT)</option>
+                    <option value="Pacific/Honolulu">Hawaii Time (HST)</option>
+                  </optgroup>
+                  <optgroup label="Other Common Timezones">
+                    <option value="UTC">UTC (Coordinated Universal Time)</option>
+                    <option value="Europe/London">London (GMT/BST)</option>
+                    <option value="Europe/Paris">Paris (CET/CEST)</option>
+                    <option value="Asia/Tokyo">Tokyo (JST)</option>
+                    <option value="Asia/Shanghai">Shanghai (CST)</option>
+                    <option value="Australia/Sydney">Sydney (AEST/AEDT)</option>
+                  </optgroup>
+                </select>
               </div>
             </div>
           </div>
@@ -331,7 +281,7 @@ export default function Settings() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="btn-primary"
+              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px]"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>

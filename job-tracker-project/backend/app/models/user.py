@@ -23,7 +23,13 @@ class User(Base):
     # Job tracking specific fields
     daily_goal = Column(Integer, default=5, nullable=False)
     weekly_goal = Column(Integer, default=25, nullable=False)
-    timezone = Column(String, default="UTC", nullable=False)
+    timezone = Column(String, default="America/Los_Angeles", nullable=False)
+    
+    # Settings and preferences
+    profile_visibility = Column(String, default="private", nullable=False)  # 'public', 'friends', 'private'
+    analytics_sharing = Column(Boolean, default=False, nullable=False)
+    theme = Column(String, default="light", nullable=False)  # 'light', 'dark', 'auto'
+    date_format = Column(String, default="MM/DD/YYYY", nullable=False)  # 'MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD'
 
     # Relationships
     job_applications = relationship("JobApplication", back_populates="user", cascade="all, delete-orphan")
