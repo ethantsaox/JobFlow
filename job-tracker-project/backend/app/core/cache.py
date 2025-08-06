@@ -5,7 +5,10 @@ from typing import Any, Optional
 from datetime import datetime, timedelta
 import redis.asyncio as redis
 import os
+import logging
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 # In-memory cache as fallback
 _memory_cache = {}
@@ -22,9 +25,9 @@ class CacheManager:
             self.redis_client = redis.from_url(redis_url)
             await self.redis_client.ping()
             self.use_redis = True
-            print("Redis cache initialized successfully")
+            logger.info("Redis cache initialized successfully")
         except Exception as e:
-            print(f"Redis not available, using memory cache: {e}")
+            logger.info(f"Redis not available, using memory cache: {e}")
             self.use_redis = False
     
     async def get(self, key: str) -> Optional[Any]:
@@ -35,7 +38,7 @@ class CacheManager:
                 if value:
                     return json.loads(value)
             except Exception as e:
-                print(f"Redis get error: {e}")
+                logger.error(f"Redis get error: {e}")
                 
         # Fallback to memory cache
         cache_item = _memory_cache.get(key)
@@ -54,7 +57,7 @@ class CacheManager:
                 await self.redis_client.setex(key, ttl, json.dumps(value, default=str))
                 return
             except Exception as e:
-                print(f"Redis set error: {e}")
+                logger.error(f"Redis set error: {e}")
         
         # Fallback to memory cache
         _memory_cache[key] = {

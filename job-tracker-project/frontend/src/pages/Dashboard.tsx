@@ -25,6 +25,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [recentAchievements, setRecentAchievements] = useState<any[]>([])
   const [achievementsLoading, setAchievementsLoading] = useState(true)
+  const [editingGoals, setEditingGoals] = useState(false)
+  const [tempDailyGoal, setTempDailyGoal] = useState(5)
+  const [tempWeeklyGoal, setTempWeeklyGoal] = useState(25)
 
   useEffect(() => {
     loadStats()
@@ -36,6 +39,8 @@ export default function Dashboard() {
       setLoading(true)
       const response = await analyticsApi.getSummary()
       setStats(response.data)
+      setTempDailyGoal(response.data.daily_goal || 5)
+      setTempWeeklyGoal(response.data.weekly_goal || 25)
       setLoading(false)
     } catch (error) {
       console.error('Error loading stats:', error)
@@ -82,6 +87,39 @@ export default function Dashboard() {
     } finally {
       setAchievementsLoading(false)
     }
+  }
+
+  const saveGoals = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('http://localhost:8000/api/analytics/goals', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          daily_goal: tempDailyGoal,
+          weekly_goal: tempWeeklyGoal
+        })
+      })
+
+      if (response.ok) {
+        // Reload stats to reflect changes
+        await loadStats()
+        setEditingGoals(false)
+      } else {
+        console.error('Failed to save goals')
+      }
+    } catch (error) {
+      console.error('Error saving goals:', error)
+    }
+  }
+
+  const cancelGoalsEdit = () => {
+    setTempDailyGoal(stats?.daily_goal || 5)
+    setTempWeeklyGoal(stats?.weekly_goal || 25)
+    setEditingGoals(false)
   }
 
   const getRarityStyle = (rarity: string) => {
@@ -312,17 +350,57 @@ export default function Dashboard() {
 
                 {/* Goals Progress */}
                 <div className="border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg p-6 hover:shadow-md transition-shadow">
-                  <div className="flex items-center mb-4">
-                    <span className="text-3xl mr-2">🎯</span>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Goals</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <span className="text-3xl mr-2">🎯</span>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">Goals</h3>
+                    </div>
+                    {!editingGoals ? (
+                      <button
+                        onClick={() => setEditingGoals(true)}
+                        className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
+                      >
+                        Edit
+                      </button>
+                    ) : (
+                      <div className="flex space-x-2 relative z-10">
+                        <button
+                          onClick={saveGoals}
+                          className="text-sm bg-primary-600 text-white px-3 py-2 rounded hover:bg-primary-700 transition-colors cursor-pointer"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={cancelGoalsEdit}
+                          className="text-sm bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600 transition-colors cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
                   </div>
                   
                   {/* Daily Goal */}
                   <div className="mb-6">
-                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Daily Goal</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Daily Goal</h4>
+                      {editingGoals && (
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="number"
+                            min="1"
+                            max="50"
+                            value={tempDailyGoal}
+                            onChange={(e) => setTempDailyGoal(parseInt(e.target.value) || 1)}
+                            className="w-16 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                          />
+                          <span className="text-sm text-gray-600 dark:text-gray-300">apps/day</span>
+                        </div>
+                      )}
+                    </div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                        {stats?.applications_today || 0} / {stats?.daily_goal || 5} applications today
+                        {stats?.applications_today || 0} / {editingGoals ? tempDailyGoal : (stats?.daily_goal || 5)} applications today
                       </span>
                       <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                         {Math.round(stats?.goal_progress_today || 0)}%
@@ -337,17 +415,32 @@ export default function Dashboard() {
                     <p className="text-gray-600 dark:text-gray-300 text-xs">
                       {(stats?.goal_progress_today || 0) >= 100 ? 
                         "✨ Daily goal achieved!" : 
-                        `${Math.max(0, (stats?.daily_goal || 5) - (stats?.applications_today || 0))} more to reach daily goal`
+                        `${Math.max(0, (editingGoals ? tempDailyGoal : (stats?.daily_goal || 5)) - (stats?.applications_today || 0))} more to reach daily goal`
                       }
                     </p>
                   </div>
 
                   {/* Weekly Goal */}
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Weekly Goal</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Weekly Goal</h4>
+                      {editingGoals && (
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="number"
+                            min="1"
+                            max="200"
+                            value={tempWeeklyGoal}
+                            onChange={(e) => setTempWeeklyGoal(parseInt(e.target.value) || 1)}
+                            className="w-16 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                          />
+                          <span className="text-sm text-gray-600 dark:text-gray-300">apps/week</span>
+                        </div>
+                      )}
+                    </div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                        {stats?.applications_this_week || 0} / {stats?.weekly_goal || 25} applications
+                        {stats?.applications_this_week || 0} / {editingGoals ? tempWeeklyGoal : (stats?.weekly_goal || 25)} applications
                       </span>
                       <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                         {Math.round(stats?.goal_progress_week || 0)}%
@@ -362,7 +455,7 @@ export default function Dashboard() {
                     <p className="text-gray-600 dark:text-gray-300 text-xs">
                       {(stats?.goal_progress_week || 0) >= 100 ? 
                         "🎉 Weekly goal achieved! You're crushing it!" : 
-                        `${Math.max(0, (stats?.weekly_goal || 25) - (stats?.applications_this_week || 0))} more to reach weekly goal`
+                        `${Math.max(0, (editingGoals ? tempWeeklyGoal : (stats?.weekly_goal || 25)) - (stats?.applications_this_week || 0))} more to reach weekly goal`
                       }
                     </p>
                   </div>

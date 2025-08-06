@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from '../hooks/useAuth'
-import { useDarkMode } from '../hooks/useDarkMode'
+// import { useAuth } from '../hooks/useAuth'
+// import { useDarkMode } from '../hooks/useDarkMode'
+import { useSearchParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 
 // Types for social features
@@ -66,8 +67,9 @@ interface UserSearchResult {
 }
 
 export default function Friends() {
-  const { user } = useAuth()
-  const { isDark } = useDarkMode()
+  // const { user } = useAuth()
+  // const { isDark } = useDarkMode()
+  const [searchParams] = useSearchParams()
   const [friendsList, setFriendsList] = useState<FriendsList>({
     friends: [],
     pending_sent: [],
@@ -79,6 +81,7 @@ export default function Friends() {
   const [loading, setLoading] = useState(true)
   const [searchLoading, setSearchLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'friends' | 'leaderboard' | 'achievements' | 'search' | 'requests'>('friends')
+  const [activeLeaderboard, setActiveLeaderboard] = useState<'applications' | 'streaks' | 'interviews' | 'achievements'>('applications')
   const [myAchievements, setMyAchievements] = useState<any>(null)
   const [achievementsLoading, setAchievementsLoading] = useState(false)
 
@@ -219,6 +222,11 @@ export default function Friends() {
 
   useEffect(() => {
     fetchFriends()
+    // Check if tab parameter is provided in URL
+    const tabParam = searchParams.get('tab')
+    if (tabParam === 'achievements') {
+      setActiveTab('achievements')
+    }
   }, [])
 
   useEffect(() => {
@@ -455,174 +463,555 @@ export default function Friends() {
         {/* Leaderboard Tab */}
         {activeTab === 'leaderboard' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Applications Leaderboard */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                  <span className="text-2xl mr-2">📊</span>
-                  Most Applications
-                </h3>
-                <div className="space-y-3">
-                  {friendsList.friends
-                    .sort((a, b) => (b.total_applications || 0) - (a.total_applications || 0))
-                    .slice(0, 5)
-                    .map((friend, index) => (
-                      <div key={friend.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                            index === 0 ? 'bg-yellow-500 text-white' :
-                            index === 1 ? 'bg-gray-400 text-white' :
-                            index === 2 ? 'bg-orange-600 text-white' :
-                            'bg-gray-300 text-gray-700'
-                          }`}>
-                            {index + 1}
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {friend.first_name} {friend.last_name}
-                            </p>
-                            <div className="flex items-center space-x-1">
-                              <div className={`w-2 h-2 rounded-full ${friend.is_online ? 'bg-green-500' : 'bg-gray-400'}`} />
-                              <span className="text-xs text-gray-500 dark:text-gray-400">{friend.status_text}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-lg text-primary-600 dark:text-primary-400">
-                            {friend.total_applications || 0}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">applications</p>
-                        </div>
-                      </div>
-                    ))}
-                </div>
+            {/* Leaderboard Navigation */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setActiveLeaderboard('applications')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeLeaderboard === 'applications'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  📊 Most Applications
+                </button>
+                <button
+                  onClick={() => setActiveLeaderboard('streaks')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeLeaderboard === 'streaks'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  🔥 Longest Streaks
+                </button>
+                <button
+                  onClick={() => setActiveLeaderboard('interviews')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeLeaderboard === 'interviews'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  💼 Most Interviews
+                </button>
+                <button
+                  onClick={() => setActiveLeaderboard('achievements')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeLeaderboard === 'achievements'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  🏆 Most Achievements
+                </button>
               </div>
+            </div>
 
-              {/* Streak Leaderboard */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                  <span className="text-2xl mr-2">🔥</span>
-                  Longest Streaks
-                </h3>
-                <div className="space-y-3">
-                  {friendsList.friends
-                    .sort((a, b) => (b.current_streak || 0) - (a.current_streak || 0))
-                    .slice(0, 5)
-                    .map((friend, index) => (
-                      <div key={friend.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                            index === 0 ? 'bg-yellow-500 text-white' :
-                            index === 1 ? 'bg-gray-400 text-white' :
-                            index === 2 ? 'bg-orange-600 text-white' :
-                            'bg-gray-300 text-gray-700'
-                          }`}>
-                            {index + 1}
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {friend.first_name} {friend.last_name}
-                            </p>
-                            <div className="flex items-center space-x-1">
-                              <div className={`w-2 h-2 rounded-full ${friend.is_online ? 'bg-green-500' : 'bg-gray-400'}`} />
-                              <span className="text-xs text-gray-500 dark:text-gray-400">{friend.status_text}</span>
+            {/* Current Leaderboard */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              {activeLeaderboard === 'applications' && (
+                <>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                    <span className="text-3xl mr-3">📊</span>
+                    Most Applications
+                  </h3>
+                  {(() => {
+                    const sortedFriends = friendsList.friends
+                      .sort((a, b) => (b.total_applications || 0) - (a.total_applications || 0))
+                    const topThree = sortedFriends.slice(0, 3)
+                    const remaining = sortedFriends.slice(3, 10)
+                    
+                    return (
+                      <>
+                        {/* Podium for Top 3 */}
+                        {topThree.length > 0 && (
+                          <div className="mb-8">
+                            <div className="flex items-end justify-center space-x-4 mb-6">
+                              {/* 2nd Place */}
+                              {topThree[1] && (
+                                <div className="flex flex-col items-center">
+                                  <div className="bg-gradient-to-t from-gray-300 to-gray-400 rounded-t-lg p-4 mb-2 shadow-lg" style={{height: '80px', width: '120px'}}>
+                                    <div className="text-center text-white">
+                                      <div className="text-2xl font-bold mb-1">🥈</div>
+                                      <div className="text-xs font-semibold">2nd Place</div>
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="font-bold text-gray-900 dark:text-white text-sm">
+                                      {topThree[1].first_name} {topThree[1].last_name}
+                                    </p>
+                                    <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                                      {topThree[1].total_applications || 0}
+                                    </p>
+                                    <p className="text-xs text-gray-500">applications</p>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* 1st Place */}
+                              {topThree[0] && (
+                                <div className="flex flex-col items-center">
+                                  <div className="bg-gradient-to-t from-yellow-400 to-yellow-500 rounded-t-lg p-4 mb-2 shadow-xl relative" style={{height: '100px', width: '140px'}}>
+                                    <div className="text-center text-white">
+                                      <div className="text-3xl font-bold mb-1">🥇</div>
+                                      <div className="text-xs font-semibold">1st Place</div>
+                                    </div>
+                                    <div className="absolute -top-2 -right-2 bg-yellow-300 rounded-full p-1">
+                                      <span className="text-lg">👑</span>
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="font-bold text-gray-900 dark:text-white">
+                                      {topThree[0].first_name} {topThree[0].last_name}
+                                    </p>
+                                    <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
+                                      {topThree[0].total_applications || 0}
+                                    </p>
+                                    <p className="text-xs text-gray-500">applications</p>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* 3rd Place */}
+                              {topThree[2] && (
+                                <div className="flex flex-col items-center">
+                                  <div className="bg-gradient-to-t from-orange-500 to-orange-600 rounded-t-lg p-4 mb-2 shadow-lg" style={{height: '70px', width: '100px'}}>
+                                    <div className="text-center text-white">
+                                      <div className="text-xl font-bold mb-1">🥉</div>
+                                      <div className="text-xs font-semibold">3rd Place</div>
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="font-bold text-gray-900 dark:text-white text-sm">
+                                      {topThree[2].first_name} {topThree[2].last_name}
+                                    </p>
+                                    <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
+                                      {topThree[2].total_applications || 0}
+                                    </p>
+                                    <p className="text-xs text-gray-500">applications</p>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-lg text-orange-600 dark:text-orange-400">
-                            {friend.current_streak || 0}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">day streak</p>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </div>
+                        )}
+                        
+                        {/* Remaining Friends List */}
+                        {remaining.length > 0 && (
+                          <div>
+                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Other Rankings</h4>
+                            <div className="space-y-3">
+                              {remaining.map((friend, index) => (
+                                <div key={friend.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                                  <div className="flex items-center space-x-3">
+                                    <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-sm font-bold text-gray-700 dark:text-gray-300">
+                                      {index + 4}
+                                    </div>
+                                    <div>
+                                      <p className="font-medium text-gray-900 dark:text-white">
+                                        {friend.first_name} {friend.last_name}
+                                      </p>
+                                      <div className="flex items-center space-x-2">
+                                        <div className={`w-2 h-2 rounded-full ${friend.is_online ? 'bg-green-500' : 'bg-gray-400'}`} />
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">{friend.status_text}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-bold text-lg text-primary-600 dark:text-primary-400">
+                                      {friend.total_applications || 0}
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">applications</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )
+                  })()}
+                </>
+              )}
 
-              {/* Interview Success Leaderboard */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                  <span className="text-2xl mr-2">💼</span>
-                  Most Interviews
-                </h3>
-                <div className="space-y-3">
-                  {friendsList.friends
-                    .sort((a, b) => (b.interview_count || 0) - (a.interview_count || 0))
-                    .slice(0, 5)
-                    .map((friend, index) => (
-                      <div key={friend.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                            index === 0 ? 'bg-yellow-500 text-white' :
-                            index === 1 ? 'bg-gray-400 text-white' :
-                            index === 2 ? 'bg-orange-600 text-white' :
-                            'bg-gray-300 text-gray-700'
-                          }`}>
-                            {index + 1}
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {friend.first_name} {friend.last_name}
-                            </p>
-                            <div className="flex items-center space-x-1">
-                              <div className={`w-2 h-2 rounded-full ${friend.is_online ? 'bg-green-500' : 'bg-gray-400'}`} />
-                              <span className="text-xs text-gray-500 dark:text-gray-400">{friend.status_text}</span>
+              {activeLeaderboard === 'streaks' && (
+                <>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                    <span className="text-3xl mr-3">🔥</span>
+                    Longest Streaks
+                  </h3>
+                  {(() => {
+                    const sortedFriends = friendsList.friends
+                      .sort((a, b) => (b.current_streak || 0) - (a.current_streak || 0))
+                    const topThree = sortedFriends.slice(0, 3)
+                    const remaining = sortedFriends.slice(3, 10)
+                    
+                    return (
+                      <>
+                        {/* Podium for Top 3 */}
+                        {topThree.length > 0 && (
+                          <div className="mb-8">
+                            <div className="flex items-end justify-center space-x-4 mb-6">
+                              {/* 2nd Place */}
+                              {topThree[1] && (
+                                <div className="flex flex-col items-center">
+                                  <div className="bg-gradient-to-t from-gray-300 to-gray-400 rounded-t-lg p-4 mb-2 shadow-lg" style={{height: '80px', width: '120px'}}>
+                                    <div className="text-center text-white">
+                                      <div className="text-2xl font-bold mb-1">🥈</div>
+                                      <div className="text-xs font-semibold">2nd Place</div>
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="font-bold text-gray-900 dark:text-white text-sm">
+                                      {topThree[1].first_name} {topThree[1].last_name}
+                                    </p>
+                                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                                      {topThree[1].current_streak || 0}
+                                    </p>
+                                    <p className="text-xs text-gray-500">day streak</p>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* 1st Place */}
+                              {topThree[0] && (
+                                <div className="flex flex-col items-center">
+                                  <div className="bg-gradient-to-t from-yellow-400 to-yellow-500 rounded-t-lg p-4 mb-2 shadow-xl relative" style={{height: '100px', width: '140px'}}>
+                                    <div className="text-center text-white">
+                                      <div className="text-3xl font-bold mb-1">🥇</div>
+                                      <div className="text-xs font-semibold">1st Place</div>
+                                    </div>
+                                    <div className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1">
+                                      <span className="text-lg">🔥</span>
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="font-bold text-gray-900 dark:text-white">
+                                      {topThree[0].first_name} {topThree[0].last_name}
+                                    </p>
+                                    <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
+                                      {topThree[0].current_streak || 0}
+                                    </p>
+                                    <p className="text-xs text-gray-500">day streak</p>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* 3rd Place */}
+                              {topThree[2] && (
+                                <div className="flex flex-col items-center">
+                                  <div className="bg-gradient-to-t from-orange-500 to-orange-600 rounded-t-lg p-4 mb-2 shadow-lg" style={{height: '70px', width: '100px'}}>
+                                    <div className="text-center text-white">
+                                      <div className="text-xl font-bold mb-1">🥉</div>
+                                      <div className="text-xs font-semibold">3rd Place</div>
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="font-bold text-gray-900 dark:text-white text-sm">
+                                      {topThree[2].first_name} {topThree[2].last_name}
+                                    </p>
+                                    <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
+                                      {topThree[2].current_streak || 0}
+                                    </p>
+                                    <p className="text-xs text-gray-500">day streak</p>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-lg text-blue-600 dark:text-blue-400">
-                            {friend.interview_count || 0}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">interviews</p>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </div>
+                        )}
+                        
+                        {/* Remaining Friends List */}
+                        {remaining.length > 0 && (
+                          <div>
+                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Other Rankings</h4>
+                            <div className="space-y-3">
+                              {remaining.map((friend, index) => (
+                                <div key={friend.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                                  <div className="flex items-center space-x-3">
+                                    <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-sm font-bold text-gray-700 dark:text-gray-300">
+                                      {index + 4}
+                                    </div>
+                                    <div>
+                                      <p className="font-medium text-gray-900 dark:text-white">
+                                        {friend.first_name} {friend.last_name}
+                                      </p>
+                                      <div className="flex items-center space-x-2">
+                                        <div className={`w-2 h-2 rounded-full ${friend.is_online ? 'bg-green-500' : 'bg-gray-400'}`} />
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">{friend.status_text}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-bold text-lg text-orange-600 dark:text-orange-400">
+                                      {friend.current_streak || 0}
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">day streak</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )
+                  })()}
+                </>
+              )}
 
-              {/* Achievement Leaders */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                  <span className="text-2xl mr-2">🏆</span>
-                  Achievement Leaders
-                </h3>
-                <div className="space-y-3">
-                  {friendsList.friends
-                    .sort((a, b) => (b.achievements?.length || 0) - (a.achievements?.length || 0))
-                    .slice(0, 5)
-                    .map((friend, index) => (
-                      <div key={friend.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                            index === 0 ? 'bg-yellow-500 text-white' :
-                            index === 1 ? 'bg-gray-400 text-white' :
-                            index === 2 ? 'bg-orange-600 text-white' :
-                            'bg-gray-300 text-gray-700'
-                          }`}>
-                            {index + 1}
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {friend.first_name} {friend.last_name}
-                            </p>
-                            <div className="flex items-center space-x-1">
-                              <div className={`w-2 h-2 rounded-full ${friend.is_online ? 'bg-green-500' : 'bg-gray-400'}`} />
-                              <span className="text-xs text-gray-500 dark:text-gray-400">{friend.status_text}</span>
+              {activeLeaderboard === 'interviews' && (
+                <>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                    <span className="text-3xl mr-3">💼</span>
+                    Most Interviews
+                  </h3>
+                  {(() => {
+                    const sortedFriends = friendsList.friends
+                      .sort((a, b) => (b.interview_count || 0) - (a.interview_count || 0))
+                    const topThree = sortedFriends.slice(0, 3)
+                    const remaining = sortedFriends.slice(3, 10)
+                    
+                    return (
+                      <>
+                        {/* Podium for Top 3 */}
+                        {topThree.length > 0 && (
+                          <div className="mb-8">
+                            <div className="flex items-end justify-center space-x-4 mb-6">
+                              {/* 2nd Place */}
+                              {topThree[1] && (
+                                <div className="flex flex-col items-center">
+                                  <div className="bg-gradient-to-t from-gray-300 to-gray-400 rounded-t-lg p-4 mb-2 shadow-lg" style={{height: '80px', width: '120px'}}>
+                                    <div className="text-center text-white">
+                                      <div className="text-2xl font-bold mb-1">🥈</div>
+                                      <div className="text-xs font-semibold">2nd Place</div>
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="font-bold text-gray-900 dark:text-white text-sm">
+                                      {topThree[1].first_name} {topThree[1].last_name}
+                                    </p>
+                                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                      {topThree[1].interview_count || 0}
+                                    </p>
+                                    <p className="text-xs text-gray-500">interviews</p>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* 1st Place */}
+                              {topThree[0] && (
+                                <div className="flex flex-col items-center">
+                                  <div className="bg-gradient-to-t from-yellow-400 to-yellow-500 rounded-t-lg p-4 mb-2 shadow-xl relative" style={{height: '100px', width: '140px'}}>
+                                    <div className="text-center text-white">
+                                      <div className="text-3xl font-bold mb-1">🥇</div>
+                                      <div className="text-xs font-semibold">1st Place</div>
+                                    </div>
+                                    <div className="absolute -top-2 -right-2 bg-blue-500 rounded-full p-1">
+                                      <span className="text-lg">💼</span>
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="font-bold text-gray-900 dark:text-white">
+                                      {topThree[0].first_name} {topThree[0].last_name}
+                                    </p>
+                                    <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
+                                      {topThree[0].interview_count || 0}
+                                    </p>
+                                    <p className="text-xs text-gray-500">interviews</p>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* 3rd Place */}
+                              {topThree[2] && (
+                                <div className="flex flex-col items-center">
+                                  <div className="bg-gradient-to-t from-orange-500 to-orange-600 rounded-t-lg p-4 mb-2 shadow-lg" style={{height: '70px', width: '100px'}}>
+                                    <div className="text-center text-white">
+                                      <div className="text-xl font-bold mb-1">🥉</div>
+                                      <div className="text-xs font-semibold">3rd Place</div>
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="font-bold text-gray-900 dark:text-white text-sm">
+                                      {topThree[2].first_name} {topThree[2].last_name}
+                                    </p>
+                                    <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                                      {topThree[2].interview_count || 0}
+                                    </p>
+                                    <p className="text-xs text-gray-500">interviews</p>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-lg text-purple-600 dark:text-purple-400">
-                            {friend.achievements?.length || 0}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">achievements</p>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </div>
+                        )}
+                        
+                        {/* Remaining Friends List */}
+                        {remaining.length > 0 && (
+                          <div>
+                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Other Rankings</h4>
+                            <div className="space-y-3">
+                              {remaining.map((friend, index) => (
+                                <div key={friend.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                                  <div className="flex items-center space-x-3">
+                                    <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-sm font-bold text-gray-700 dark:text-gray-300">
+                                      {index + 4}
+                                    </div>
+                                    <div>
+                                      <p className="font-medium text-gray-900 dark:text-white">
+                                        {friend.first_name} {friend.last_name}
+                                      </p>
+                                      <div className="flex items-center space-x-2">
+                                        <div className={`w-2 h-2 rounded-full ${friend.is_online ? 'bg-green-500' : 'bg-gray-400'}`} />
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">{friend.status_text}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-bold text-lg text-blue-600 dark:text-blue-400">
+                                      {friend.interview_count || 0}
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">interviews</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )
+                  })()
+                }
+                </>
+              )}
+
+              {activeLeaderboard === 'achievements' && (
+                <>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                    <span className="text-3xl mr-3">🏆</span>
+                    Most Achievements
+                  </h3>
+                  {(() => {
+                    const sortedFriends = friendsList.friends
+                      .sort((a, b) => (b.achievements?.length || 0) - (a.achievements?.length || 0))
+                    const topThree = sortedFriends.slice(0, 3)
+                    const remaining = sortedFriends.slice(3, 10)
+                    
+                    return (
+                      <>
+                        {/* Podium for Top 3 */}
+                        {topThree.length > 0 && (
+                          <div className="mb-8">
+                            <div className="flex items-end justify-center space-x-4 mb-6">
+                              {/* 2nd Place */}
+                              {topThree[1] && (
+                                <div className="flex flex-col items-center">
+                                  <div className="bg-gradient-to-t from-gray-300 to-gray-400 rounded-t-lg p-4 mb-2 shadow-lg" style={{height: '80px', width: '120px'}}>
+                                    <div className="text-center text-white">
+                                      <div className="text-2xl font-bold mb-1">🥈</div>
+                                      <div className="text-xs font-semibold">2nd Place</div>
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="font-bold text-gray-900 dark:text-white text-sm">
+                                      {topThree[1].first_name} {topThree[1].last_name}
+                                    </p>
+                                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                                      {topThree[1].achievements?.length || 0}
+                                    </p>
+                                    <p className="text-xs text-gray-500">achievements</p>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* 1st Place */}
+                              {topThree[0] && (
+                                <div className="flex flex-col items-center">
+                                  <div className="bg-gradient-to-t from-yellow-400 to-yellow-500 rounded-t-lg p-4 mb-2 shadow-xl relative" style={{height: '100px', width: '140px'}}>
+                                    <div className="text-center text-white">
+                                      <div className="text-3xl font-bold mb-1">🥇</div>
+                                      <div className="text-xs font-semibold">1st Place</div>
+                                    </div>
+                                    <div className="absolute -top-2 -right-2 bg-purple-500 rounded-full p-1">
+                                      <span className="text-lg">🏆</span>
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="font-bold text-gray-900 dark:text-white">
+                                      {topThree[0].first_name} {topThree[0].last_name}
+                                    </p>
+                                    <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
+                                      {topThree[0].achievements?.length || 0}
+                                    </p>
+                                    <p className="text-xs text-gray-500">achievements</p>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* 3rd Place */}
+                              {topThree[2] && (
+                                <div className="flex flex-col items-center">
+                                  <div className="bg-gradient-to-t from-orange-500 to-orange-600 rounded-t-lg p-4 mb-2 shadow-lg" style={{height: '70px', width: '100px'}}>
+                                    <div className="text-center text-white">
+                                      <div className="text-xl font-bold mb-1">🥉</div>
+                                      <div className="text-xs font-semibold">3rd Place</div>
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="font-bold text-gray-900 dark:text-white text-sm">
+                                      {topThree[2].first_name} {topThree[2].last_name}
+                                    </p>
+                                    <p className="text-xl font-bold text-purple-600 dark:text-purple-400">
+                                      {topThree[2].achievements?.length || 0}
+                                    </p>
+                                    <p className="text-xs text-gray-500">achievements</p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Remaining Friends List */}
+                        {remaining.length > 0 && (
+                          <div>
+                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Other Rankings</h4>
+                            <div className="space-y-3">
+                              {remaining.map((friend, index) => (
+                                <div key={friend.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                                  <div className="flex items-center space-x-3">
+                                    <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-sm font-bold text-gray-700 dark:text-gray-300">
+                                      {index + 4}
+                                    </div>
+                                    <div>
+                                      <p className="font-medium text-gray-900 dark:text-white">
+                                        {friend.first_name} {friend.last_name}
+                                      </p>
+                                      <div className="flex items-center space-x-2">
+                                        <div className={`w-2 h-2 rounded-full ${friend.is_online ? 'bg-green-500' : 'bg-gray-400'}`} />
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">{friend.status_text}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-bold text-lg text-purple-600 dark:text-purple-400">
+                                      {friend.achievements?.length || 0}
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">achievements</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )
+                  })()
+                }
+                </>
+              )}
             </div>
           </div>
         )}
@@ -675,15 +1064,15 @@ export default function Friends() {
                 </div>
 
                 {/* Achievement Categories */}
-                {Object.entries(myAchievements.by_category).map(([category, achievements]: [string, any[]]) => (
+                {Object.entries(myAchievements.by_category).map(([category, achievements]) => (
                   <div key={category} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                     <h4 className="text-md font-semibold text-gray-900 dark:text-white mb-4 capitalize">
                       {category} Achievements
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {achievements
-                        .sort((a, b) => getRarityOrder(b.rarity) - getRarityOrder(a.rarity))
-                        .map((achievement, index) => {
+                      {(achievements as any[])
+                        .sort((a: any, b: any) => getRarityOrder(b.rarity) - getRarityOrder(a.rarity))
+                        .map((achievement: any, index: number) => {
                           const style = getRarityStyle(achievement.rarity)
                           const isUnlocked = achievement.unlocked
                           console.log(`Achievement: ${achievement.title}, Rarity: ${achievement.rarity}, Unlocked: ${isUnlocked}`, style)
@@ -692,7 +1081,7 @@ export default function Friends() {
                               key={index}
                               className={`p-3 rounded border transition-all duration-300 ${
                                 isUnlocked 
-                                  ? `${style.bg} ${style.border} ${style.glow} ${style.animation} hover:scale-105`
+                                  ? `${style.bg} ${style.border} ${style.glow} ${style.animation} hover:scale-[1.03]`
                                   : 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 opacity-60'
                               }`}
                             >

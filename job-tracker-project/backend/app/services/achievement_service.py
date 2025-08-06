@@ -34,17 +34,17 @@ class AchievementService:
         {"type": "streak", "value": 100, "title": "Streak Legend", "description": "Maintained your goal for 100 consecutive days", "icon": "🔥", "category": "streak", "rarity": "mythic"},
         
         # Interview Achievements
-        {"type": "interview_count", "value": 1, "title": "First Interview", "description": "Got your first interview", "icon": "👔", "category": "milestone", "rarity": "uncommon"},
-        {"type": "interview_count", "value": 5, "title": "Interview Pro", "description": "Got 5 interviews", "icon": "👔", "category": "milestone", "rarity": "rare"},
-        {"type": "interview_count", "value": 10, "title": "Interview Expert", "description": "Got 10 interviews", "icon": "👔", "category": "milestone", "rarity": "epic"},
+        {"type": "interview_count", "value": 1, "title": "First Interview", "description": "Got your first interview", "icon": "👔", "category": "milestone", "rarity": "rare"},
+        {"type": "interview_count", "value": 5, "title": "Interview Pro", "description": "Got 5 interviews", "icon": "👔", "category": "milestone", "rarity": "epic"},
+        {"type": "interview_count", "value": 10, "title": "Interview Expert", "description": "Got 10 interviews", "icon": "👔", "category": "milestone", "rarity": "legendary"},
         
         # Consistency Achievements
         {"type": "consistency", "value": 7, "title": "Consistent Applicant", "description": "Applied to jobs 7 days in a row", "icon": "📅", "category": "consistency", "rarity": "uncommon"},
         {"type": "consistency", "value": 30, "title": "Monthly Momentum", "description": "Applied to jobs 30 days in a row", "icon": "📅", "category": "consistency", "rarity": "epic"},
         
         # Offer Achievements
-        {"type": "offer_count", "value": 1, "title": "First Offer", "description": "Received your first job offer", "icon": "💼", "category": "milestone", "rarity": "rare"},
-        {"type": "offer_count", "value": 3, "title": "Multiple Offers", "description": "Received 3 job offers", "icon": "💼", "category": "milestone", "rarity": "legendary"},
+        {"type": "offer_count", "value": 1, "title": "First Offer", "description": "Received your first job offer", "icon": "💼", "category": "milestone", "rarity": "epic"},
+        {"type": "offer_count", "value": 3, "title": "Multiple Offers", "description": "Received 3 job offers", "icon": "💼", "category": "milestone", "rarity": "mythic"},
         
         # Speed Achievements
         {"type": "daily_applications", "value": 5, "title": "Speed Demon", "description": "Applied to 5 jobs in one day", "icon": "⚡", "category": "speed", "rarity": "uncommon"},

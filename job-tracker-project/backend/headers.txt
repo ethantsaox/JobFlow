@@ -1,0 +1,11 @@
+HTTP/1.1 403 Forbidden
+date: Wed, 06 Aug 2025 20:20:04 GMT
+server: uvicorn
+content-length: 30
+content-type: application/json
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-xss-protection: 1; mode=block
+referrer-policy: strict-origin-when-cross-origin
+content-security-policy: default-src 'self'; script-src 'self'; object-src 'none';
+

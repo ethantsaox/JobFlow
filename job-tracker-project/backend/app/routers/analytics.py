@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
+from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, and_, extract
@@ -437,3 +438,35 @@ async def export_analytics_json(
     }
     
     return export_service.export_analytics_json(analytics_data, current_user.email)
+
+class GoalsUpdate(BaseModel):
+    daily_goal: int
+    weekly_goal: int
+
+@router.put("/goals")
+async def update_goals(
+    goals: GoalsUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """Update user's daily and weekly goals"""
+    
+    # Validate goals
+    if goals.daily_goal < 1 or goals.daily_goal > 50:
+        raise HTTPException(status_code=400, detail="Daily goal must be between 1 and 50")
+    
+    if goals.weekly_goal < 1 or goals.weekly_goal > 200:
+        raise HTTPException(status_code=400, detail="Weekly goal must be between 1 and 200")
+    
+    # Update user goals
+    current_user.daily_goal = goals.daily_goal
+    current_user.weekly_goal = goals.weekly_goal
+    
+    db.commit()
+    db.refresh(current_user)
+    
+    return {
+        "message": "Goals updated successfully",
+        "daily_goal": current_user.daily_goal,
+        "weekly_goal": current_user.weekly_goal
+    }

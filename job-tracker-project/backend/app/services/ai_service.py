@@ -2,8 +2,11 @@ from typing import Dict, List, Any, Optional
 import json
 import re
 import os
+import logging
 from openai import AsyncOpenAI
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 class AIService:
     """AI Service for job analysis using OpenAI GPT"""
@@ -59,7 +62,7 @@ class AIService:
             return result
 
         except Exception as e:
-            print(f"AI parsing failed, using fallback: {e}")
+            logger.warning(f"AI parsing failed, using fallback: {e}")
             return await self._mock_parse_job_description(title, description, company)
     
     async def analyze_job_match(self, job_title: str, job_description: str, 
@@ -111,7 +114,7 @@ class AIService:
             return result
 
         except Exception as e:
-            print(f"AI job match analysis failed, using fallback: {e}")
+            logger.warning(f"AI job match analysis failed, using fallback: {e}")
             return await self._mock_analyze_job_match(job_title, job_description, job_requirements, user_skills)
     
     async def generate_user_insights(self, applications: List[Dict[str, Any]], 
@@ -159,7 +162,7 @@ class AIService:
             return result
 
         except Exception as e:
-            print(f"AI user insights failed, using fallback: {e}")
+            logger.warning(f"AI user insights failed, using fallback: {e}")
             return await self._mock_generate_user_insights(applications, user_goals)
     
     async def get_market_analysis(self, role_type: str, location: Optional[str] = None) -> Dict[str, Any]:
@@ -323,7 +326,7 @@ class AIService:
             return result
 
         except Exception as e:
-            print(f"AI resume analysis failed, using fallback: {e}")
+            logger.warning(f"AI resume analysis failed, using fallback: {e}")
             return await self._mock_analyze_resume_job_fit(resume_text, job_description)
 
     async def generate_job_recommendations(self, user_profile: Dict[str, Any], 
@@ -389,7 +392,7 @@ class AIService:
             return result
 
         except Exception as e:
-            print(f"AI job recommendations failed, using fallback: {e}")
+            logger.warning(f"AI job recommendations failed, using fallback: {e}")
             return await self._mock_generate_job_recommendations(user_profile, recent_applications)
 
     async def optimize_application_content(self, job_description: str, current_resume: str, 
@@ -445,7 +448,7 @@ class AIService:
             return result
 
         except Exception as e:
-            print(f"AI application optimization failed, using fallback: {e}")
+            logger.warning(f"AI application optimization failed, using fallback: {e}")
             return await self._mock_optimize_application_content(job_description, current_resume, cover_letter)
 
     # Helper methods for AI integration

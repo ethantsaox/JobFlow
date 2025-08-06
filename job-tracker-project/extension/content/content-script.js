@@ -17,6 +17,8 @@ class JobExtractor {
     };
     
     this.companyInfoCache = new Map();
+    this.trackedJobs = new Map(); // Store tracked jobs with timestamps
+    this.COOLDOWN_DURATION = 10000; // 10 seconds cooldown
     
     // Initialize with error boundary
     try {
@@ -82,6 +84,29 @@ class JobExtractor {
   getCurrentSite() {
     const hostname = window.location.hostname;
     return Object.keys(this.siteDetectors).find(site => hostname.includes(site));
+  }
+
+  generateJobId(jobData) {
+    // Create a unique identifier based on company + title + URL
+    const key = `${jobData.company_name || 'unknown'}_${jobData.title || 'unknown'}_${window.location.href}`;
+    return key.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+  }
+
+  isJobInCooldown(jobId) {
+    const lastTracked = this.trackedJobs.get(jobId);
+    if (!lastTracked) return false;
+    
+    const now = Date.now();
+    return (now - lastTracked) < this.COOLDOWN_DURATION;
+  }
+
+  getRemainingCooldown(jobId) {
+    const lastTracked = this.trackedJobs.get(jobId);
+    if (!lastTracked) return 0;
+    
+    const now = Date.now();
+    const elapsed = now - lastTracked;
+    return Math.max(0, Math.ceil((this.COOLDOWN_DURATION - elapsed) / 1000));
   }
 
   injectTrackButton() {
@@ -202,43 +227,85 @@ class JobExtractor {
 
   async trackCurrentJob() {
     const button = document.getElementById('job-tracker-btn');
-    if (button) {
-      button.innerHTML = 'Tracking...';
-      button.disabled = true;
-    }
-
+    
     try {
       const jobData = await this.extractJobData();
-      if (jobData) {
-        // Enhance job data with additional information
-        const enhancedJobData = await this.enhanceJobData(jobData);
+      if (!jobData) {
+        this.showError('Could not extract job data');
+        return;
+      }
+
+      const jobId = this.generateJobId(jobData);
+      
+      // Check if job is in cooldown
+      if (this.isJobInCooldown(jobId)) {
+        const remainingSeconds = this.getRemainingCooldown(jobId);
+        this.showError(`Job already tracked! Please wait ${remainingSeconds} seconds before tracking again.`);
+        return;
+      }
+
+      // Proceed with tracking
+      if (button) {
+        button.innerHTML = 'Tracking...';
+        button.disabled = true;
+      }
+
+      // Enhance job data with additional information
+      const enhancedJobData = await this.enhanceJobData(jobData);
+      
+      const response = await this.sendToBackground('TRACK_JOB', enhancedJobData);
+      if (response.success) {
+        // Mark job as tracked with current timestamp
+        this.trackedJobs.set(jobId, Date.now());
         
-        const response = await this.sendToBackground('TRACK_JOB', enhancedJobData);
-        if (response.success) {
-          this.showSuccess();
-        } else {
-          this.showError(response.error || 'Failed to track job');
+        this.showSuccess();
+        
+        // Reset button immediately
+        if (button) {
+          button.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            Track Job
+          `;
+          button.style.backgroundColor = '#0073b1';
+          button.disabled = false;
         }
       } else {
-        this.showError('Could not extract job data');
+        this.showError(response.error || 'Failed to track job');
+        
+        // Reset button on error
+        setTimeout(() => {
+          if (button) {
+            button.innerHTML = `
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              Track Job
+            `;
+            button.disabled = false;
+            button.style.backgroundColor = '#0073b1';
+          }
+        }, 2000);
       }
     } catch (error) {
       console.error('Error tracking job:', error);
       this.showError('Failed to track job');
+      
+      // Reset button on error
+      setTimeout(() => {
+        if (button) {
+          button.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            Track Job
+          `;
+          button.disabled = false;
+          button.style.backgroundColor = '#0073b1';
+        }
+      }, 2000);
     }
-
-    // Reset button
-    setTimeout(() => {
-      if (button) {
-        button.innerHTML = `
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-          </svg>
-          Track Job
-        `;
-        button.disabled = false;
-      }
-    }, 2000);
   }
 
   async enhanceJobData(jobData) {

@@ -3,7 +3,10 @@ from sqlalchemy.orm import Session
 from typing import Dict, Any, List
 import json
 import asyncio
+import logging
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 from app.core.database import get_db
 from app.core.auth import get_current_user
@@ -465,7 +468,7 @@ async def bulk_analyze_applications(
                 app.ai_summary = analysis.get("summary", "")
                 
             except Exception as e:
-                print(f"Failed to analyze application {app.id}: {e}")
+                logger.warning(f"Failed to analyze application {app.id}: {e}")
                 continue
         
         db.commit()

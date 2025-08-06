@@ -6,8 +6,20 @@ from slowapi.util import get_remote_address
 from datetime import datetime, timedelta
 
 from app.core.database import get_db
-from app.core.security import verify_password, get_password_hash, create_access_token, create_refresh_token
 from app.core.auth import get_current_user
+
+# Import security systems with fallback
+try:
+    from app.core.password_security import get_password_security, validate_and_hash_password
+    from app.core.secure_jwt import get_jwt_handler
+    from app.core.privacy_security import get_privacy_manager
+    SECURITY_AVAILABLE = True
+except ImportError as e:
+    import logging
+    logging.warning(f"Security systems not available, falling back to basic auth: {e}")
+    # Fallback imports
+    from app.core.security import verify_password, get_password_hash, create_access_token, create_refresh_token
+    SECURITY_AVAILABLE = False
 from app.core.password_reset import PasswordResetService
 from app.core.email import email_service
 from app.models.user import User
@@ -36,8 +48,18 @@ async def register(
             detail="Email already registered"
         )
     
-    # Create new user
-    hashed_password = get_password_hash(user_data.password)
+    # Validate and hash password 
+    if SECURITY_AVAILABLE:
+        try:
+            hashed_password = validate_and_hash_password(user_data.password)
+        except ValueError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e)
+            )
+    else:
+        # Basic password hashing
+        hashed_password = get_password_hash(user_data.password)
     
     db_user = User(
         email=user_data.email,
@@ -52,10 +74,15 @@ async def register(
     db.commit()
     db.refresh(db_user)
     
+    # Create default privacy settings for new user if security is available
+    if SECURITY_AVAILABLE:
+        privacy_manager = get_privacy_manager()
+        privacy_manager.create_default_privacy_settings(str(db_user.id), db)
+    
     return UserResponse.model_validate(db_user)
 
 @router.post("/login", response_model=Token)
-@limiter.limit("10/minute")  # Rate limit login attempts
+@limiter.limit("5/minute")  # Stricter rate limit for login
 async def login(
     request: Request,  # For rate limiting
     user_credentials: UserLogin,
@@ -63,31 +90,68 @@ async def login(
 ):
     """Authenticate user and return access token"""
     
-    # Get user by email
-    user = db.query(User).filter(User.email == user_credentials.email).first()
-    
-    if not user or not verify_password(user_credentials.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
+    if SECURITY_AVAILABLE:
+        password_security = get_password_security()
+        jwt_handler = get_jwt_handler()
+        
+        # Check for account lockout
+        is_locked, remaining_seconds = password_security.is_account_locked(user_credentials.email)
+        if is_locked:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Account temporarily locked due to failed login attempts. Try again in {remaining_seconds // 60} minutes."
+            )
+        
+        # Get user by email
+        user = db.query(User).filter(User.email == user_credentials.email).first()
+        
+        # Use secure password verification
+        if not user or not password_security.verify_password(user_credentials.password, user.hashed_password):
+            # Record failed attempt
+            password_security.record_failed_login(user_credentials.email)
+            
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Inactive user account"
+            )
+        
+        # Clear failed login attempts on successful login
+        password_security.clear_failed_attempts(user_credentials.email)
+        
+        # Create secure tokens
+        access_token = jwt_handler.create_access_token(data={"sub": str(user.id)})
+        refresh_token = jwt_handler.create_refresh_token(str(user.id))
+    else:
+        # Basic authentication
+        user = db.query(User).filter(User.email == user_credentials.email).first()
+        
+        if not user or not verify_password(user_credentials.password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Inactive user account"
+            )
+        
+        # Create basic tokens
+        access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
+        access_token = create_access_token(
+            data={"sub": str(user.id)}, 
+            expires_delta=access_token_expires
         )
-    
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user account"
-        )
-    
-    # Create access token
-    access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
-    access_token = create_access_token(
-        data={"sub": str(user.id)}, 
-        expires_delta=access_token_expires
-    )
-    
-    # Create refresh token
-    refresh_token = create_refresh_token(data={"sub": str(user.id)})
+        refresh_token = create_refresh_token(data={"sub": str(user.id)})
     
     # Update last login
     user.last_login = datetime.utcnow()
@@ -185,10 +249,8 @@ async def forgot_password(
             # Generate reset token
             reset_token = PasswordResetService.create_reset_token(db, user)
             
-            # DEVELOPMENT MODE: Log the token for testing
-            import logging
-            logging.warning(f"🔑 DEVELOPMENT MODE: Reset token for {user.email}: {reset_token}")
-            print(f"🔑 DEVELOPMENT MODE: Reset token for {user.email}: {reset_token}")
+            # For production, tokens should only be sent via email
+            # In development, you can add temporary logging here if needed
             
             # Send email
             email_sent = await email_service.send_password_reset_email(
