@@ -21,6 +21,7 @@ class Achievement(Base):
     # Achievement criteria
     criteria_value = Column(Integer, nullable=True)  # The threshold (e.g., 10 for "10 applications")
     category = Column(String, nullable=False)  # "milestone", "streak", "consistency", etc.
+    rarity = Column(String, nullable=False, default="common")  # "common", "uncommon", "rare", "epic", "legendary", "mythic"
     
     # Achievement status
     unlocked = Column(Boolean, default=False, nullable=False)

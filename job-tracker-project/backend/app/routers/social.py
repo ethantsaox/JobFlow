@@ -23,6 +23,10 @@ from typing import Dict, Any
 class FriendRequestCreate(BaseModel):
     user_id: str = Field(..., description="User ID to send friend request to")
 
+class OnlineStatusUpdate(BaseModel):
+    session_id: Optional[str] = None
+    device_info: Optional[str] = None
+
 class FriendRequestResponse(BaseModel):
     id: str
     requester: Dict[str, Any]
@@ -313,6 +317,19 @@ async def get_friend_profile(
     
     return await _build_friend_profile(user, current_user, db)
 
+@router.get("/achievements/me")
+async def get_my_achievements(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get current user's achievements with progress"""
+    from app.services.achievement_service import AchievementService
+    
+    # Get all achievements for the current user
+    achievements_data = await AchievementService.get_user_achievements(str(current_user.id), db, unlocked_only=False)
+    
+    return achievements_data
+
 # Helper functions
 
 async def _build_friend_profile(friend_user: User, current_user: User, db: Session) -> FriendProfile:
@@ -364,27 +381,64 @@ async def _build_friend_profile(friend_user: User, current_user: User, db: Sessi
                 ).count()
         
         if privacy.share_streak_data:
-            # Get streak data
-            latest_streak = db.query(Streak).filter(
-                Streak.user_id == friend_user.id
-            ).order_by(Streak.created_at.desc()).first()
+            # Calculate current streak from daily streak data
+            from datetime import date, timedelta
             
-            if latest_streak:
-                current_streak = latest_streak.current_count
-                longest_streak = latest_streak.longest_count
+            # Get current streak by counting consecutive days from today backwards
+            current_date = date.today()
+            current_streak = 0
+            
+            # Check each day backwards until we find a gap
+            for i in range(365):  # Maximum look back of 1 year
+                check_date = current_date - timedelta(days=i)
+                streak_entry = db.query(Streak).filter(
+                    Streak.user_id == friend_user.id,
+                    Streak.date == check_date,
+                    Streak.goal_met == True
+                ).first()
+                
+                if streak_entry:
+                    current_streak = i + 1
+                else:
+                    break
+            
+            # Calculate longest streak by looking at all goal_met entries
+            all_streaks = db.query(Streak).filter(
+                Streak.user_id == friend_user.id,
+                Streak.goal_met == True
+            ).order_by(Streak.date.asc()).all()
+            
+            # Find longest consecutive streak
+            longest_streak = 0
+            temp_streak = 0
+            last_date = None
+            
+            for streak_entry in all_streaks:
+                if last_date is None or (streak_entry.date - last_date).days == 1:
+                    temp_streak += 1
+                else:
+                    longest_streak = max(longest_streak, temp_streak)
+                    temp_streak = 1
+                last_date = streak_entry.date
+            
+            longest_streak = max(longest_streak, temp_streak)  # Don't forget the last streak
         
         if privacy.share_achievement_data:
-            # Get achievements
+            # Get achievements (only unlocked ones)
             user_achievements = db.query(Achievement).filter(
-                Achievement.user_id == friend_user.id
+                Achievement.user_id == friend_user.id,
+                Achievement.unlocked == True
             ).all()
             
             achievements = [
                 {
                     "type": ach.achievement_type,
-                    "level": ach.level,
-                    "earned_at": ach.earned_at,
-                    "description": ach.description
+                    "title": ach.title,
+                    "description": ach.description,
+                    "icon": ach.icon,
+                    "category": ach.category,
+                    "rarity": ach.rarity,
+                    "unlocked_at": ach.unlocked_at.isoformat() if ach.unlocked_at else None
                 }
                 for ach in user_achievements
             ]
@@ -431,3 +485,81 @@ def _build_friend_request_response(friendship: Friendship) -> FriendRequestRespo
         created_at=friendship.created_at,
         accepted_at=friendship.accepted_at
     )
+
+# Online Status Endpoints
+@router.post("/status/online")
+async def mark_online(
+    status_data: OnlineStatusUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Mark user as online and update presence"""
+    # Get or create online status for user
+    online_status = db.query(OnlineStatus).filter(OnlineStatus.user_id == current_user.id).first()
+    
+    if not online_status:
+        online_status = OnlineStatus(user_id=current_user.id)
+        db.add(online_status)
+    
+    # Mark user as online
+    online_status.mark_online(
+        session_id=status_data.session_id,
+        device_info=status_data.device_info
+    )
+    
+    db.commit()
+    
+    return {"message": "Marked as online", "status": "online"}
+
+@router.post("/status/offline")
+async def mark_offline(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Mark user as offline"""
+    online_status = db.query(OnlineStatus).filter(OnlineStatus.user_id == current_user.id).first()
+    
+    if online_status:
+        online_status.mark_offline()
+        db.commit()
+    
+    return {"message": "Marked as offline", "status": "offline"}
+
+@router.post("/status/activity")
+async def update_activity(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update user activity timestamp (heartbeat)"""
+    online_status = db.query(OnlineStatus).filter(OnlineStatus.user_id == current_user.id).first()
+    
+    if not online_status:
+        online_status = OnlineStatus(user_id=current_user.id)
+        db.add(online_status)
+    
+    online_status.update_activity()
+    db.commit()
+    
+    return {"message": "Activity updated", "last_activity": online_status.last_activity}
+
+@router.get("/status/me")
+async def get_my_status(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get current user's online status"""
+    online_status = db.query(OnlineStatus).filter(OnlineStatus.user_id == current_user.id).first()
+    
+    if not online_status:
+        return {
+            "is_online": False,
+            "status_text": "Offline",
+            "last_seen": None
+        }
+    
+    return {
+        "is_online": online_status.is_online,
+        "status_text": online_status.status_text,
+        "last_seen": online_status.last_seen,
+        "last_activity": online_status.last_activity
+    }

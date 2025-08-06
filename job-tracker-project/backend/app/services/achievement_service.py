@@ -12,43 +12,43 @@ from app.models.streak import Streak
 class AchievementService:
     """Service for managing achievements and badges"""
     
-    # Define all possible achievements
+    # Define all possible achievements with difficulty/rarity
     ACHIEVEMENT_DEFINITIONS = [
         # Application Count Milestones
-        {"type": "application_count", "value": 1, "title": "First Step", "description": "Applied to your first job", "icon": "🎯", "category": "milestone"},
-        {"type": "application_count", "value": 5, "title": "Getting Started", "description": "Applied to 5 jobs", "icon": "🚀", "category": "milestone"},
-        {"type": "application_count", "value": 10, "title": "Double Digits", "description": "Applied to 10 jobs", "icon": "🔟", "category": "milestone"},
-        {"type": "application_count", "value": 25, "title": "Quarter Century", "description": "Applied to 25 jobs", "icon": "💪", "category": "milestone"},
-        {"type": "application_count", "value": 50, "title": "Half Century", "description": "Applied to 50 jobs", "icon": "⭐", "category": "milestone"},
-        {"type": "application_count", "value": 100, "title": "Century Club", "description": "Applied to 100 jobs", "icon": "💯", "category": "milestone"},
-        {"type": "application_count", "value": 200, "title": "Persistent", "description": "Applied to 200 jobs", "icon": "🏆", "category": "milestone"},
-        {"type": "application_count", "value": 500, "title": "Job Hunter", "description": "Applied to 500 jobs", "icon": "👑", "category": "milestone"},
+        {"type": "application_count", "value": 1, "title": "First Step", "description": "Applied to your first job", "icon": "🎯", "category": "milestone", "rarity": "common"},
+        {"type": "application_count", "value": 5, "title": "Getting Started", "description": "Applied to 5 jobs", "icon": "🚀", "category": "milestone", "rarity": "common"},
+        {"type": "application_count", "value": 10, "title": "Double Digits", "description": "Applied to 10 jobs", "icon": "🔟", "category": "milestone", "rarity": "uncommon"},
+        {"type": "application_count", "value": 25, "title": "Quarter Century", "description": "Applied to 25 jobs", "icon": "💪", "category": "milestone", "rarity": "uncommon"},
+        {"type": "application_count", "value": 50, "title": "Half Century", "description": "Applied to 50 jobs", "icon": "⭐", "category": "milestone", "rarity": "rare"},
+        {"type": "application_count", "value": 100, "title": "Century Club", "description": "Applied to 100 jobs", "icon": "💯", "category": "milestone", "rarity": "epic"},
+        {"type": "application_count", "value": 200, "title": "Persistent", "description": "Applied to 200 jobs", "icon": "🏆", "category": "milestone", "rarity": "legendary"},
+        {"type": "application_count", "value": 500, "title": "Job Hunter", "description": "Applied to 500 jobs", "icon": "👑", "category": "milestone", "rarity": "mythic"},
         
         # Streak Achievements
-        {"type": "streak", "value": 1, "title": "Streak Starter", "description": "Maintained your goal for 1 day", "icon": "🔥", "category": "streak"},
-        {"type": "streak", "value": 3, "title": "Three Days Strong", "description": "Maintained your goal for 3 consecutive days", "icon": "🔥", "category": "streak"},
-        {"type": "streak", "value": 7, "title": "Week Warrior", "description": "Maintained your goal for 7 consecutive days", "icon": "🔥", "category": "streak"},
-        {"type": "streak", "value": 14, "title": "Two Week Champion", "description": "Maintained your goal for 14 consecutive days", "icon": "🔥", "category": "streak"},
-        {"type": "streak", "value": 30, "title": "Month Master", "description": "Maintained your goal for 30 consecutive days", "icon": "🔥", "category": "streak"},
-        {"type": "streak", "value": 60, "title": "Unstoppable", "description": "Maintained your goal for 60 consecutive days", "icon": "🔥", "category": "streak"},
-        {"type": "streak", "value": 100, "title": "Streak Legend", "description": "Maintained your goal for 100 consecutive days", "icon": "🔥", "category": "streak"},
+        {"type": "streak", "value": 1, "title": "Streak Starter", "description": "Maintained your goal for 1 day", "icon": "🔥", "category": "streak", "rarity": "common"},
+        {"type": "streak", "value": 3, "title": "Three Days Strong", "description": "Maintained your goal for 3 consecutive days", "icon": "🔥", "category": "streak", "rarity": "common"},
+        {"type": "streak", "value": 7, "title": "Week Warrior", "description": "Maintained your goal for 7 consecutive days", "icon": "🔥", "category": "streak", "rarity": "uncommon"},
+        {"type": "streak", "value": 14, "title": "Two Week Champion", "description": "Maintained your goal for 14 consecutive days", "icon": "🔥", "category": "streak", "rarity": "rare"},
+        {"type": "streak", "value": 30, "title": "Month Master", "description": "Maintained your goal for 30 consecutive days", "icon": "🔥", "category": "streak", "rarity": "epic"},
+        {"type": "streak", "value": 60, "title": "Unstoppable", "description": "Maintained your goal for 60 consecutive days", "icon": "🔥", "category": "streak", "rarity": "legendary"},
+        {"type": "streak", "value": 100, "title": "Streak Legend", "description": "Maintained your goal for 100 consecutive days", "icon": "🔥", "category": "streak", "rarity": "mythic"},
         
         # Interview Achievements
-        {"type": "interview_count", "value": 1, "title": "First Interview", "description": "Got your first interview", "icon": "👔", "category": "milestone"},
-        {"type": "interview_count", "value": 5, "title": "Interview Pro", "description": "Got 5 interviews", "icon": "👔", "category": "milestone"},
-        {"type": "interview_count", "value": 10, "title": "Interview Expert", "description": "Got 10 interviews", "icon": "👔", "category": "milestone"},
+        {"type": "interview_count", "value": 1, "title": "First Interview", "description": "Got your first interview", "icon": "👔", "category": "milestone", "rarity": "uncommon"},
+        {"type": "interview_count", "value": 5, "title": "Interview Pro", "description": "Got 5 interviews", "icon": "👔", "category": "milestone", "rarity": "rare"},
+        {"type": "interview_count", "value": 10, "title": "Interview Expert", "description": "Got 10 interviews", "icon": "👔", "category": "milestone", "rarity": "epic"},
         
         # Consistency Achievements
-        {"type": "consistency", "value": 7, "title": "Consistent Applicant", "description": "Applied to jobs 7 days in a row", "icon": "📅", "category": "consistency"},
-        {"type": "consistency", "value": 30, "title": "Monthly Momentum", "description": "Applied to jobs 30 days in a row", "icon": "📅", "category": "consistency"},
+        {"type": "consistency", "value": 7, "title": "Consistent Applicant", "description": "Applied to jobs 7 days in a row", "icon": "📅", "category": "consistency", "rarity": "uncommon"},
+        {"type": "consistency", "value": 30, "title": "Monthly Momentum", "description": "Applied to jobs 30 days in a row", "icon": "📅", "category": "consistency", "rarity": "epic"},
         
         # Offer Achievements
-        {"type": "offer_count", "value": 1, "title": "First Offer", "description": "Received your first job offer", "icon": "💼", "category": "milestone"},
-        {"type": "offer_count", "value": 3, "title": "Multiple Offers", "description": "Received 3 job offers", "icon": "💼", "category": "milestone"},
+        {"type": "offer_count", "value": 1, "title": "First Offer", "description": "Received your first job offer", "icon": "💼", "category": "milestone", "rarity": "rare"},
+        {"type": "offer_count", "value": 3, "title": "Multiple Offers", "description": "Received 3 job offers", "icon": "💼", "category": "milestone", "rarity": "legendary"},
         
         # Speed Achievements
-        {"type": "daily_applications", "value": 5, "title": "Speed Demon", "description": "Applied to 5 jobs in one day", "icon": "⚡", "category": "speed"},
-        {"type": "daily_applications", "value": 10, "title": "Application Machine", "description": "Applied to 10 jobs in one day", "icon": "⚡", "category": "speed"},
+        {"type": "daily_applications", "value": 5, "title": "Speed Demon", "description": "Applied to 5 jobs in one day", "icon": "⚡", "category": "speed", "rarity": "uncommon"},
+        {"type": "daily_applications", "value": 10, "title": "Application Machine", "description": "Applied to 10 jobs in one day", "icon": "⚡", "category": "speed", "rarity": "rare"},
     ]
     
     @staticmethod
@@ -69,6 +69,7 @@ class AchievementService:
                     icon=achievement_def["icon"],
                     criteria_value=achievement_def["value"],
                     category=achievement_def["category"],
+                    rarity=achievement_def["rarity"],
                     unlocked=False,
                     current_progress=0
                 )
@@ -205,7 +206,9 @@ class AchievementService:
                 "current_progress": achievement.current_progress,
                 "unlocked": achievement.unlocked,
                 "unlocked_at": achievement.unlocked_at.isoformat() if achievement.unlocked_at else None,
-                "progress_percentage": min(100, (achievement.current_progress / achievement.criteria_value * 100)) if achievement.criteria_value > 0 else 0
+                "progress_percentage": min(100, (achievement.current_progress / achievement.criteria_value * 100)) if achievement.criteria_value > 0 else 0,
+                "rarity": achievement.rarity,
+                "category": achievement.category
             })
         
         return {
