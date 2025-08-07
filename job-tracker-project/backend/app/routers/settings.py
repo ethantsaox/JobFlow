@@ -21,9 +21,16 @@ class UserSettingsUpdate(BaseModel):
     timezone: Optional[str] = None
     date_format: Optional[str] = None  # 'MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD'
 
+class UserProfileUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    daily_goal: Optional[int] = None
+    weekly_goal: Optional[int] = None
+
 class UserSettingsResponse(BaseModel):
     privacy: dict
     preferences: dict
+    profile: dict
 
 @router.get("/", response_model=UserSettingsResponse)
 async def get_user_settings(
@@ -53,6 +60,14 @@ async def get_user_settings(
             "theme": getattr(current_user, 'theme', 'light'),
             "timezone": getattr(current_user, 'timezone', 'America/Los_Angeles'),
             "date_format": getattr(current_user, 'date_format', 'MM/DD/YYYY')
+        },
+        "profile": {
+            "first_name": current_user.first_name,
+            "last_name": current_user.last_name,
+            "email": current_user.email,
+            "daily_goal": getattr(current_user, 'daily_goal', 5),
+            "weekly_goal": getattr(current_user, 'weekly_goal', 25),
+            "created_at": current_user.created_at.isoformat() if current_user.created_at else None
         }
     }
     
@@ -212,3 +227,61 @@ async def get_privacy_impact(
         impact["description"] = "Your profile and all activity are completely hidden from other users. Only you can see your data."
     
     return impact
+
+@router.patch("/profile")
+async def update_user_profile(
+    profile_update: UserProfileUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update user profile information"""
+    
+    # Update profile fields
+    if profile_update.first_name is not None:
+        if not profile_update.first_name.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="First name cannot be empty"
+            )
+        current_user.first_name = profile_update.first_name.strip()
+    
+    if profile_update.last_name is not None:
+        if not profile_update.last_name.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Last name cannot be empty"
+            )
+        current_user.last_name = profile_update.last_name.strip()
+    
+    if profile_update.daily_goal is not None:
+        if profile_update.daily_goal < 1 or profile_update.daily_goal > 50:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Daily goal must be between 1 and 50"
+            )
+        current_user.daily_goal = profile_update.daily_goal
+    
+    if profile_update.weekly_goal is not None:
+        if profile_update.weekly_goal < 1 or profile_update.weekly_goal > 200:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Weekly goal must be between 1 and 200"
+            )
+        current_user.weekly_goal = profile_update.weekly_goal
+    
+    # Update timestamp
+    current_user.updated_at = datetime.utcnow()
+    
+    # Commit changes
+    db.commit()
+    db.refresh(current_user)
+    
+    return {
+        "message": "Profile updated successfully",
+        "profile": {
+            "first_name": current_user.first_name,
+            "last_name": current_user.last_name,
+            "daily_goal": current_user.daily_goal,
+            "weekly_goal": current_user.weekly_goal
+        }
+    }

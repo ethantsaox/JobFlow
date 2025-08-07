@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import Navbar from '../components/Navbar'
+import api from '../services/api'
 
 interface UserProfile {
   email: string
@@ -30,8 +31,33 @@ export default function Profile() {
   const loadProfile = async () => {
     try {
       setLoading(true)
-      // For now, use mock data based on user info
-      const mockProfile: UserProfile = {
+      
+      // Load settings to get complete profile data
+      const settingsResponse = await api.get('/api/settings/')
+      const profileFromSettings = settingsResponse.data.profile
+      
+      // Use profile data from settings API (which has the most up-to-date data)
+      const profileData: UserProfile = {
+        email: profileFromSettings?.email || user?.email || 'user@example.com',
+        first_name: profileFromSettings?.first_name || user?.first_name || 'John',
+        last_name: profileFromSettings?.last_name || user?.last_name || 'Doe',
+        daily_goal: profileFromSettings?.daily_goal || 5,
+        weekly_goal: profileFromSettings?.weekly_goal || 25,
+        created_at: profileFromSettings?.created_at || new Date().toISOString()
+      }
+      
+      setProfile(profileData)
+      setFormData({
+        first_name: profileData.first_name,
+        last_name: profileData.last_name,
+        daily_goal: profileData.daily_goal,
+        weekly_goal: profileData.weekly_goal
+      })
+    } catch (error) {
+      console.error('Error loading profile:', error)
+      
+      // Fall back to basic profile without picture
+      const fallbackProfile: UserProfile = {
         email: user?.email || 'user@example.com',
         first_name: user?.first_name || 'John',
         last_name: user?.last_name || 'Doe',
@@ -39,15 +65,14 @@ export default function Profile() {
         weekly_goal: 25,
         created_at: new Date().toISOString()
       }
-      setProfile(mockProfile)
+      
+      setProfile(fallbackProfile)
       setFormData({
-        first_name: mockProfile.first_name,
-        last_name: mockProfile.last_name,
-        daily_goal: mockProfile.daily_goal,
-        weekly_goal: mockProfile.weekly_goal
+        first_name: fallbackProfile.first_name,
+        last_name: fallbackProfile.last_name,
+        daily_goal: fallbackProfile.daily_goal,
+        weekly_goal: fallbackProfile.weekly_goal
       })
-    } catch (error) {
-      console.error('Error loading profile:', error)
     } finally {
       setLoading(false)
     }
@@ -55,23 +80,22 @@ export default function Profile() {
 
   const handleSave = async () => {
     try {
-      // TODO: Implement actual API call to update profile
-      console.log('Updating profile:', formData)
+      // Store current scroll position
+      const currentScrollY = window.scrollY
       
-      // Update local state
-      if (profile) {
-        setProfile({
-          ...profile,
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          daily_goal: formData.daily_goal,
-          weekly_goal: formData.weekly_goal
-        })
-      }
+      // Update profile via API
+      await api.patch('/api/settings/profile', formData)
       
       setEditing(false)
+      
+      // Reload profile from server to reflect changes in UI
+      await loadProfile()
+      
+      // Restore scroll position
+      window.scrollTo(0, currentScrollY)
     } catch (error) {
       console.error('Error updating profile:', error)
+      alert('Failed to update profile. Please try again.')
     }
   }
 
