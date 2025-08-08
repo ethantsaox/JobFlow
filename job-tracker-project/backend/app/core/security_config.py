@@ -32,7 +32,7 @@ class SecuritySettings(BaseSettings):
     
     # API Security
     api_key_header: str = "X-API-Key"
-    cors_origins: list = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
     cors_allow_credentials: bool = True
     max_request_size: int = 10 * 1024 * 1024  # 10MB
     
@@ -42,6 +42,7 @@ class SecuritySettings(BaseSettings):
     
     # Environment
     environment: str = "development"
+    frontend_url: str = "http://localhost:3000"
     debug: bool = False
     
     # Security Headers
@@ -83,7 +84,9 @@ class SecuritySettings(BaseSettings):
     @classmethod
     def validate_cors_origins(cls, v):
         if isinstance(v, str):
-            return [origin.strip() for origin in v.split(',')]
+            return v
+        elif isinstance(v, list):
+            return ','.join(v)
         return v
     
     @field_validator('environment')
@@ -110,12 +113,18 @@ class SecuritySettings(BaseSettings):
     
     def get_cors_origins(self) -> list:
         """Get CORS origins with environment-specific defaults"""
+        # Convert string to list if needed
+        if isinstance(self.cors_origins, str):
+            origins_list = [origin.strip() for origin in self.cors_origins.split(',')]
+        else:
+            origins_list = self.cors_origins
+            
         if self.is_production():
             # In production, be more restrictive
-            if "localhost" in str(self.cors_origins):
+            if any("localhost" in origin for origin in origins_list):
                 logger.warning("Localhost found in CORS origins in production!")
-            return [origin for origin in self.cors_origins if "localhost" not in origin]
-        return self.cors_origins
+            return [origin for origin in origins_list if "localhost" not in origin]
+        return origins_list
 
 # Global settings instance
 security_settings = SecuritySettings()

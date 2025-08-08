@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import InterviewScheduler from './InterviewScheduler'
+import { API_BASE_URL } from '../services/api'
 
 interface JobApplication {
   id: string
@@ -58,7 +59,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
   const fetchApplication = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`http://localhost:8000/api/job-applications/${applicationId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/job-applications/${applicationId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         }
@@ -93,7 +94,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
     e.preventDefault()
     
     try {
-      const response = await fetch(`http://localhost:8000/api/job-applications/${applicationId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/job-applications/${applicationId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -144,7 +145,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
   const handleQuickUpdate = async () => {
     try {
       console.log('💾 Quick update - saving form data:', formData)
-      const response = await fetch(`http://localhost:8000/api/job-applications/${applicationId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/job-applications/${applicationId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

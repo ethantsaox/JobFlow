@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { useAuth } from './useAuth'
+import { API_BASE_URL } from '../services/api'
 
-const API_BASE = 'http://localhost:8000/api'
+const API_BASE = `${API_BASE_URL}/api`
 
 interface OnlineStatusHookOptions {
   heartbeatInterval?: number // in milliseconds, default 5 minutes

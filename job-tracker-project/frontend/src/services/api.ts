@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// Centralized API URL configuration
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 // Create axios instance
 const api: AxiosInstance = axios.create({

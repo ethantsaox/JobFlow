@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useDarkMode } from '../hooks/useDarkMode'
+import { API_BASE_URL } from '../services/api'
 
 interface Friend {
   id: string
@@ -34,7 +35,7 @@ export default function SocialWidget() {
   })
   const [loading, setLoading] = useState(true)
 
-  const API_BASE = 'http://localhost:8000/api'
+  const API_BASE = `${API_BASE_URL}/api`
 
   const fetchFriends = async () => {
     try {

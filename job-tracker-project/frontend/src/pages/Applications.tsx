@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import { API_BASE_URL } from '../services/api'
 import ApplicationDetail from '../components/ApplicationDetail'
 import { formatDate } from '../utils/dateUtils'
 
@@ -76,7 +77,7 @@ export default function Applications() {
   const fetchApplications = async (showLoading = true) => {
     try {
       if (showLoading) setLoading(true)
-      const response = await fetch('http://localhost:8000/api/job-applications/', {
+      const response = await fetch(`${API_BASE_URL}/api/job-applications/`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         }
@@ -140,7 +141,7 @@ export default function Applications() {
     e.preventDefault()
     
     try {
-      const response = await fetch('http://localhost:8000/api/job-applications/', {
+      const response = await fetch(`${API_BASE_URL}/api/job-applications/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -171,7 +172,7 @@ export default function Applications() {
     if (!selectedApplication) return
 
     try {
-      const response = await fetch(`http://localhost:8000/api/job-applications/${selectedApplication.id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/job-applications/${selectedApplication.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -253,7 +254,7 @@ export default function Applications() {
   const bulkUpdateStatus = async (status: JobApplication['status']) => {
     try {
       const promises = Array.from(selectedApplications).map(id =>
-        fetch(`http://localhost:8000/api/job-applications/${id}`, {
+        fetch(`${API_BASE_URL}/api/job-applications/${id}`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -277,7 +278,7 @@ export default function Applications() {
 
     try {
       const promises = Array.from(selectedApplications).map(id =>
-        fetch(`http://localhost:8000/api/job-applications/${id}`, {
+        fetch(`${API_BASE_URL}/api/job-applications/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -793,31 +794,6 @@ export default function Applications() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Interview Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.interview_date}
-                    onChange={(e) => setFormData({...formData, interview_date: e.target.value})}
-                    className="input w-full"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Follow-up Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.follow_up_date}
-                    onChange={(e) => setFormData({...formData, follow_up_date: e.target.value})}
-                    className="input w-full"
-                  />
-                </div>
-              </div>
 
               <div className="flex justify-end space-x-3 pt-4">
                 <button
@@ -962,31 +938,6 @@ export default function Applications() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Interview Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.interview_date}
-                    onChange={(e) => setFormData({...formData, interview_date: e.target.value})}
-                    className="input w-full"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Follow-up Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.follow_up_date}
-                    onChange={(e) => setFormData({...formData, follow_up_date: e.target.value})}
-                    className="input w-full"
-                  />
-                </div>
-              </div>
 
               <div className="flex justify-end space-x-3 pt-4">
                 <button

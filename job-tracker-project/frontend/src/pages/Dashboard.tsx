@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar'
 import SocialWidget from '../components/SocialWidget'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { analyticsApi } from '../services/api'
+import { analyticsApi, API_BASE_URL } from '../services/api'
 
 interface DashboardStats {
   total_applications: number
@@ -65,7 +65,7 @@ export default function Dashboard() {
     try {
       setAchievementsLoading(true)
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:8000/api/social/achievements/me', {
+      const response = await fetch(`${API_BASE_URL}/api/social/achievements/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -92,7 +92,7 @@ export default function Dashboard() {
   const saveGoals = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:8000/api/analytics/goals', {
+      const response = await fetch(`${API_BASE_URL}/api/analytics/goals`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -355,48 +355,52 @@ export default function Dashboard() {
                       <span className="text-3xl mr-2">🎯</span>
                       <h3 className="text-xl font-bold text-gray-900 dark:text-white">Goals</h3>
                     </div>
-                    {!editingGoals ? (
-                      <button
-                        onClick={() => setEditingGoals(true)}
-                        className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
-                      >
-                        Edit
-                      </button>
-                    ) : (
-                      <div className="flex space-x-2 relative z-10">
+                    <div className="w-[120px] flex justify-end">
+                      {!editingGoals ? (
                         <button
-                          onClick={saveGoals}
-                          className="text-sm bg-primary-600 text-white px-3 py-2 rounded hover:bg-primary-700 transition-colors cursor-pointer"
+                          onClick={() => setEditingGoals(true)}
+                          className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
                         >
-                          Save
+                          Edit
                         </button>
-                        <button
-                          onClick={cancelGoalsEdit}
-                          className="text-sm bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600 transition-colors cursor-pointer"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={saveGoals}
+                            className="text-sm bg-primary-600 text-white px-3 py-2 rounded hover:bg-primary-700 transition-colors cursor-pointer"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={cancelGoalsEdit}
+                            className="text-sm bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600 transition-colors cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
                   {/* Daily Goal */}
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Daily Goal</h4>
-                      {editingGoals && (
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="number"
-                            min="1"
-                            max="50"
-                            value={tempDailyGoal}
-                            onChange={(e) => setTempDailyGoal(parseInt(e.target.value) || 1)}
-                            className="w-16 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                          />
-                          <span className="text-sm text-gray-600 dark:text-gray-300">apps/day</span>
-                        </div>
-                      )}
+                      <div className="w-[120px] flex justify-end h-6">
+                        {editingGoals && (
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="number"
+                              min="1"
+                              max="50"
+                              value={tempDailyGoal}
+                              onChange={(e) => setTempDailyGoal(parseInt(e.target.value) || 1)}
+                              className="w-16 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                            />
+                            <span className="text-sm text-gray-600 dark:text-gray-300">apps/day</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
@@ -424,19 +428,21 @@ export default function Dashboard() {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Weekly Goal</h4>
-                      {editingGoals && (
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="number"
-                            min="1"
-                            max="200"
-                            value={tempWeeklyGoal}
-                            onChange={(e) => setTempWeeklyGoal(parseInt(e.target.value) || 1)}
-                            className="w-16 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                          />
-                          <span className="text-sm text-gray-600 dark:text-gray-300">apps/week</span>
-                        </div>
-                      )}
+                      <div className="w-[120px] flex justify-end h-6">
+                        {editingGoals && (
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="number"
+                              min="1"
+                              max="200"
+                              value={tempWeeklyGoal}
+                              onChange={(e) => setTempWeeklyGoal(parseInt(e.target.value) || 1)}
+                              className="w-16 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                            />
+                            <span className="text-sm text-gray-600 dark:text-gray-300">apps/week</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-600 dark:text-gray-300">

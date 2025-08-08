@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 // import { useDarkMode } from '../hooks/useDarkMode'
 import { useSearchParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import { API_BASE_URL } from '../services/api'
 
 // Types for social features
 interface Friend {
@@ -13,6 +14,7 @@ interface Friend {
   is_online: boolean
   last_seen?: string
   status_text: string
+  profile_picture_url?: string
   total_applications?: number
   interview_count?: number
   offer_count?: number
@@ -64,6 +66,7 @@ interface UserSearchResult {
   last_seen?: string
   friendship_status?: string
   can_send_request: boolean
+  profile_picture_url?: string
 }
 
 export default function Friends() {
@@ -84,9 +87,10 @@ export default function Friends() {
   const [activeLeaderboard, setActiveLeaderboard] = useState<'applications' | 'streaks' | 'interviews' | 'achievements'>('applications')
   const [myAchievements, setMyAchievements] = useState<any>(null)
   const [achievementsLoading, setAchievementsLoading] = useState(false)
+  const [currentUserStats, setCurrentUserStats] = useState<any>(null)
 
   // API base URL
-  const API_BASE = 'http://localhost:8000/api'
+  const API_BASE = `${API_BASE_URL}/api`
 
   // Fetch user's own achievements
   const fetchMyAchievements = async () => {
@@ -101,13 +105,54 @@ export default function Friends() {
       
       if (response.ok) {
         const data = await response.json()
-        console.log('Achievements data:', data)
         setMyAchievements(data)
       }
     } catch (error) {
       console.error('Error fetching achievements:', error)
     } finally {
       setAchievementsLoading(false)
+    }
+  }
+
+  // Fetch current user's stats for leaderboard
+  const fetchCurrentUserStats = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const [analyticsResponse, profileResponse] = await Promise.all([
+        fetch(`${API_BASE}/analytics/summary`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`${API_BASE}/settings/`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ])
+      
+      if (analyticsResponse.ok && profileResponse.ok) {
+        const analyticsData = await analyticsResponse.json()
+        const profileData = await profileResponse.json()
+        
+        // Get achievements count
+        const achievementsCount = myAchievements ? 
+          Object.values(myAchievements.by_category).flat().filter((ach: any) => ach.unlocked).length : 0
+        
+        const userStats = {
+          id: 'current-user',
+          first_name: profileData.profile.first_name,
+          last_name: profileData.profile.last_name,
+          email: profileData.profile.email,
+          is_online: true,
+          status_text: 'Online',
+          profile_picture_url: profileData.profile.profile_picture_url,
+          total_applications: analyticsData.total_applications,
+          interview_count: Math.round(analyticsData.total_applications * analyticsData.interview_rate / 100),
+          current_streak: analyticsData.current_streak,
+          achievements: { length: achievementsCount }
+        }
+        
+        setCurrentUserStats(userStats)
+      }
+    } catch (error) {
+      console.error('Error fetching current user stats:', error)
     }
   }
 
@@ -220,8 +265,36 @@ export default function Friends() {
     }
   }
 
+  // Remove friend
+  const removeFriend = async (userId: string) => {
+    if (!confirm('Are you sure you want to remove this friend?')) {
+      return
+    }
+    
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${API_BASE}/social/friend/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      if (response.ok) {
+        fetchFriends()
+        setSelectedFriend(null) // Close modal if it was open
+      } else {
+        alert('Failed to remove friend. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error removing friend:', error)
+      alert('Failed to remove friend. Please try again.')
+    }
+  }
+
   useEffect(() => {
     fetchFriends()
+    fetchMyAchievements()
     // Check if tab parameter is provided in URL
     const tabParam = searchParams.get('tab')
     if (tabParam === 'achievements') {
@@ -243,9 +316,67 @@ export default function Friends() {
     }
   }, [activeTab])
 
+  useEffect(() => {
+    if (activeTab === 'leaderboard' && !currentUserStats) {
+      fetchCurrentUserStats()
+    }
+  }, [activeTab, myAchievements])
+
+  // Helper function to combine friends with current user for leaderboards
+  const getLeaderboardData = () => {
+    if (!currentUserStats) return friendsList.friends
+    
+    // Add current user to friends list for leaderboard
+    return [...friendsList.friends, currentUserStats]
+  }
+
+  // Helper function to check if a user is the current user
+  const isCurrentUser = (userId: string) => userId === 'current-user'
+
   const OnlineIndicator = ({ isOnline }: { isOnline: boolean }) => (
     <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
   )
+
+  const ProfilePicture = ({ 
+    profilePictureUrl, 
+    firstName, 
+    lastName, 
+    size = 'md' 
+  }: { 
+    profilePictureUrl?: string
+    firstName: string
+    lastName: string
+    size?: 'sm' | 'md' | 'lg'
+  }) => {
+    const sizeClasses = {
+      sm: 'w-8 h-8 text-sm',
+      md: 'w-12 h-12 text-lg',
+      lg: 'w-16 h-16 text-xl'
+    }
+
+    const getInitials = (first: string, last: string) => {
+      if (!first || !last) {
+        return "??"
+      }
+      return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase()
+    }
+
+    if (profilePictureUrl) {
+      return (
+        <img
+          src={`${API_BASE_URL}${profilePictureUrl}`}
+          alt={`${firstName} ${lastName}`}
+          className={`${sizeClasses[size]} rounded-full object-cover border-2 border-gray-200 dark:border-gray-600`}
+        />
+      )
+    }
+
+    return (
+      <div className={`${sizeClasses[size]} rounded-full bg-primary-600 dark:bg-primary-500 flex items-center justify-center text-white font-semibold border-2 border-gray-200 dark:border-gray-600`}>
+        {getInitials(firstName, lastName)}
+      </div>
+    )
+  }
 
   const StatCard = ({ title, value, icon }: { title: string; value: number | undefined; icon: string }) => (
     <div className="bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-700">
@@ -388,43 +519,29 @@ export default function Friends() {
                     className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() => setSelectedFriend(friend)}
                   >
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {friend.first_name} {friend.last_name}
-                        </h3>
+                    <div className="flex items-start space-x-4 mb-4">
+                      <ProfilePicture
+                        profilePictureUrl={friend.profile_picture_url}
+                        firstName={friend.first_name}
+                        lastName={friend.last_name}
+                        size="md"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {friend.first_name} {friend.last_name}
+                          </h3>
+                          <div className="flex items-center space-x-2">
+                            <OnlineIndicator isOnline={friend.is_online} />
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {friend.status_text}
+                            </span>
+                          </div>
+                        </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{friend.email}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <OnlineIndicator isOnline={friend.is_online} />
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {friend.status_text}
-                        </span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <StatCard
-                        title="Applications"
-                        value={friend.total_applications}
-                        icon="📋"
-                      />
-                      <StatCard
-                        title="Interviews"
-                        value={friend.interview_count}
-                        icon="💼"
-                      />
-                      <StatCard
-                        title="Current Streak"
-                        value={friend.current_streak}
-                        icon="🔥"
-                      />
-                      <StatCard
-                        title="Best Streak"
-                        value={friend.longest_streak}
-                        icon="🏆"
-                      />
-                    </div>
 
                     {friend.achievements.length > 0 && (
                       <div className="mt-4">
@@ -518,7 +635,7 @@ export default function Friends() {
                     Most Applications
                   </h3>
                   {(() => {
-                    const sortedFriends = friendsList.friends
+                    const sortedFriends = getLeaderboardData()
                       .sort((a, b) => (b.total_applications || 0) - (a.total_applications || 0))
                     const topThree = sortedFriends.slice(0, 3)
                     const remaining = sortedFriends.slice(3, 10)
@@ -540,7 +657,7 @@ export default function Friends() {
                                   </div>
                                   <div className="text-center">
                                     <p className="font-bold text-gray-900 dark:text-white text-sm">
-                                      {topThree[1].first_name} {topThree[1].last_name}
+                                      {isCurrentUser(topThree[1].id) ? 'You' : `${topThree[1].first_name} ${topThree[1].last_name}`}
                                     </p>
                                     <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                                       {topThree[1].total_applications || 0}
@@ -564,7 +681,7 @@ export default function Friends() {
                                   </div>
                                   <div className="text-center">
                                     <p className="font-bold text-gray-900 dark:text-white">
-                                      {topThree[0].first_name} {topThree[0].last_name}
+                                      {isCurrentUser(topThree[0].id) ? 'You' : `${topThree[0].first_name} ${topThree[0].last_name}`}
                                     </p>
                                     <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
                                       {topThree[0].total_applications || 0}
@@ -585,7 +702,7 @@ export default function Friends() {
                                   </div>
                                   <div className="text-center">
                                     <p className="font-bold text-gray-900 dark:text-white text-sm">
-                                      {topThree[2].first_name} {topThree[2].last_name}
+                                      {isCurrentUser(topThree[2].id) ? 'You' : `${topThree[2].first_name} ${topThree[2].last_name}`}
                                     </p>
                                     <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
                                       {topThree[2].total_applications || 0}
@@ -604,14 +721,26 @@ export default function Friends() {
                             <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Other Rankings</h4>
                             <div className="space-y-3">
                               {remaining.map((friend, index) => (
-                                <div key={friend.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                                <div key={friend.id} className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
+                                  isCurrentUser(friend.id) 
+                                    ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 hover:bg-primary-100 dark:hover:bg-primary-900/30'
+                                    : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'
+                                }`}>
                                   <div className="flex items-center space-x-3">
-                                    <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-sm font-bold text-gray-700 dark:text-gray-300">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                                      isCurrentUser(friend.id)
+                                        ? 'bg-primary-500 text-white'
+                                        : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                                    }`}>
                                       {index + 4}
                                     </div>
                                     <div>
-                                      <p className="font-medium text-gray-900 dark:text-white">
-                                        {friend.first_name} {friend.last_name}
+                                      <p className={`font-medium ${
+                                        isCurrentUser(friend.id) 
+                                          ? 'text-primary-900 dark:text-primary-100'
+                                          : 'text-gray-900 dark:text-white'
+                                      }`}>
+                                        {isCurrentUser(friend.id) ? 'You' : `${friend.first_name} ${friend.last_name}`}
                                       </p>
                                       <div className="flex items-center space-x-2">
                                         <div className={`w-2 h-2 rounded-full ${friend.is_online ? 'bg-green-500' : 'bg-gray-400'}`} />
@@ -643,7 +772,7 @@ export default function Friends() {
                     Longest Streaks
                   </h3>
                   {(() => {
-                    const sortedFriends = friendsList.friends
+                    const sortedFriends = getLeaderboardData()
                       .sort((a, b) => (b.current_streak || 0) - (a.current_streak || 0))
                     const topThree = sortedFriends.slice(0, 3)
                     const remaining = sortedFriends.slice(3, 10)
@@ -665,7 +794,7 @@ export default function Friends() {
                                   </div>
                                   <div className="text-center">
                                     <p className="font-bold text-gray-900 dark:text-white text-sm">
-                                      {topThree[1].first_name} {topThree[1].last_name}
+                                      {isCurrentUser(topThree[1].id) ? 'You' : `${topThree[1].first_name} ${topThree[1].last_name}`}
                                     </p>
                                     <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                                       {topThree[1].current_streak || 0}
@@ -689,7 +818,7 @@ export default function Friends() {
                                   </div>
                                   <div className="text-center">
                                     <p className="font-bold text-gray-900 dark:text-white">
-                                      {topThree[0].first_name} {topThree[0].last_name}
+                                      {isCurrentUser(topThree[0].id) ? 'You' : `${topThree[0].first_name} ${topThree[0].last_name}`}
                                     </p>
                                     <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
                                       {topThree[0].current_streak || 0}
@@ -710,7 +839,7 @@ export default function Friends() {
                                   </div>
                                   <div className="text-center">
                                     <p className="font-bold text-gray-900 dark:text-white text-sm">
-                                      {topThree[2].first_name} {topThree[2].last_name}
+                                      {isCurrentUser(topThree[2].id) ? 'You' : `${topThree[2].first_name} ${topThree[2].last_name}`}
                                     </p>
                                     <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
                                       {topThree[2].current_streak || 0}
@@ -736,7 +865,7 @@ export default function Friends() {
                                     </div>
                                     <div>
                                       <p className="font-medium text-gray-900 dark:text-white">
-                                        {friend.first_name} {friend.last_name}
+                                        {isCurrentUser(friend.id) ? 'You' : `${friend.first_name} ${friend.last_name}`}
                                       </p>
                                       <div className="flex items-center space-x-2">
                                         <div className={`w-2 h-2 rounded-full ${friend.is_online ? 'bg-green-500' : 'bg-gray-400'}`} />
@@ -768,7 +897,7 @@ export default function Friends() {
                     Most Interviews
                   </h3>
                   {(() => {
-                    const sortedFriends = friendsList.friends
+                    const sortedFriends = getLeaderboardData()
                       .sort((a, b) => (b.interview_count || 0) - (a.interview_count || 0))
                     const topThree = sortedFriends.slice(0, 3)
                     const remaining = sortedFriends.slice(3, 10)
@@ -790,7 +919,7 @@ export default function Friends() {
                                   </div>
                                   <div className="text-center">
                                     <p className="font-bold text-gray-900 dark:text-white text-sm">
-                                      {topThree[1].first_name} {topThree[1].last_name}
+                                      {isCurrentUser(topThree[1].id) ? 'You' : `${topThree[1].first_name} ${topThree[1].last_name}`}
                                     </p>
                                     <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                                       {topThree[1].interview_count || 0}
@@ -814,7 +943,7 @@ export default function Friends() {
                                   </div>
                                   <div className="text-center">
                                     <p className="font-bold text-gray-900 dark:text-white">
-                                      {topThree[0].first_name} {topThree[0].last_name}
+                                      {isCurrentUser(topThree[0].id) ? 'You' : `${topThree[0].first_name} ${topThree[0].last_name}`}
                                     </p>
                                     <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
                                       {topThree[0].interview_count || 0}
@@ -835,7 +964,7 @@ export default function Friends() {
                                   </div>
                                   <div className="text-center">
                                     <p className="font-bold text-gray-900 dark:text-white text-sm">
-                                      {topThree[2].first_name} {topThree[2].last_name}
+                                      {isCurrentUser(topThree[2].id) ? 'You' : `${topThree[2].first_name} ${topThree[2].last_name}`}
                                     </p>
                                     <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
                                       {topThree[2].interview_count || 0}
@@ -861,7 +990,7 @@ export default function Friends() {
                                     </div>
                                     <div>
                                       <p className="font-medium text-gray-900 dark:text-white">
-                                        {friend.first_name} {friend.last_name}
+                                        {isCurrentUser(friend.id) ? 'You' : `${friend.first_name} ${friend.last_name}`}
                                       </p>
                                       <div className="flex items-center space-x-2">
                                         <div className={`w-2 h-2 rounded-full ${friend.is_online ? 'bg-green-500' : 'bg-gray-400'}`} />
@@ -894,7 +1023,7 @@ export default function Friends() {
                     Most Achievements
                   </h3>
                   {(() => {
-                    const sortedFriends = friendsList.friends
+                    const sortedFriends = getLeaderboardData()
                       .sort((a, b) => (b.achievements?.length || 0) - (a.achievements?.length || 0))
                     const topThree = sortedFriends.slice(0, 3)
                     const remaining = sortedFriends.slice(3, 10)
@@ -916,7 +1045,7 @@ export default function Friends() {
                                   </div>
                                   <div className="text-center">
                                     <p className="font-bold text-gray-900 dark:text-white text-sm">
-                                      {topThree[1].first_name} {topThree[1].last_name}
+                                      {isCurrentUser(topThree[1].id) ? 'You' : `${topThree[1].first_name} ${topThree[1].last_name}`}
                                     </p>
                                     <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                                       {topThree[1].achievements?.length || 0}
@@ -940,7 +1069,7 @@ export default function Friends() {
                                   </div>
                                   <div className="text-center">
                                     <p className="font-bold text-gray-900 dark:text-white">
-                                      {topThree[0].first_name} {topThree[0].last_name}
+                                      {isCurrentUser(topThree[0].id) ? 'You' : `${topThree[0].first_name} ${topThree[0].last_name}`}
                                     </p>
                                     <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
                                       {topThree[0].achievements?.length || 0}
@@ -961,7 +1090,7 @@ export default function Friends() {
                                   </div>
                                   <div className="text-center">
                                     <p className="font-bold text-gray-900 dark:text-white text-sm">
-                                      {topThree[2].first_name} {topThree[2].last_name}
+                                      {isCurrentUser(topThree[2].id) ? 'You' : `${topThree[2].first_name} ${topThree[2].last_name}`}
                                     </p>
                                     <p className="text-xl font-bold text-purple-600 dark:text-purple-400">
                                       {topThree[2].achievements?.length || 0}
@@ -987,7 +1116,7 @@ export default function Friends() {
                                     </div>
                                     <div>
                                       <p className="font-medium text-gray-900 dark:text-white">
-                                        {friend.first_name} {friend.last_name}
+                                        {isCurrentUser(friend.id) ? 'You' : `${friend.first_name} ${friend.last_name}`}
                                       </p>
                                       <div className="flex items-center space-x-2">
                                         <div className={`w-2 h-2 rounded-full ${friend.is_online ? 'bg-green-500' : 'bg-gray-400'}`} />
@@ -1075,7 +1204,6 @@ export default function Friends() {
                         .map((achievement: any, index: number) => {
                           const style = getRarityStyle(achievement.rarity)
                           const isUnlocked = achievement.unlocked
-                          console.log(`Achievement: ${achievement.title}, Rarity: ${achievement.rarity}, Unlocked: ${isUnlocked}`, style)
                           return (
                             <div
                               key={index}
@@ -1184,23 +1312,29 @@ export default function Friends() {
                     className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between"
                   >
                     <div className="flex items-center space-x-4">
+                      <ProfilePicture
+                        profilePictureUrl={user.profile_picture_url}
+                        firstName={user.first_name}
+                        lastName={user.last_name}
+                        size="md"
+                      />
                       <div>
                         <h3 className="font-semibold text-gray-900 dark:text-white">
                           {user.first_name} {user.last_name}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <OnlineIndicator isOnline={user.is_online} />
+                        <div className="flex items-center space-x-2 mt-1">
+                          <OnlineIndicator isOnline={user.is_online} />
+                        </div>
                       </div>
                     </div>
 
                     <div>
-                      {user.friendship_status === 'PENDING' ? (
+                      {user.friendship_status === 'pending' || user.friendship_status === 'PENDING' ? (
                         <span className="px-3 py-1 text-sm bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full">
                           Request Pending
                         </span>
-                      ) : user.friendship_status === 'ACCEPTED' ? (
+                      ) : user.friendship_status === 'accepted' || user.friendship_status === 'ACCEPTED' ? (
                         <span className="px-3 py-1 text-sm bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">
                           Friends
                         </span>
@@ -1323,27 +1457,41 @@ export default function Friends() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-4">
+                  <ProfilePicture
+                    profilePictureUrl={selectedFriend.profile_picture_url}
+                    firstName={selectedFriend.first_name}
+                    lastName={selectedFriend.last_name}
+                    size="lg"
+                  />
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                       {selectedFriend.first_name} {selectedFriend.last_name}
                     </h2>
                     <p className="text-gray-600 dark:text-gray-400">{selectedFriend.email}</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <OnlineIndicator isOnline={selectedFriend.is_online} />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {selectedFriend.status_text}
-                    </span>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <OnlineIndicator isOnline={selectedFriend.is_online} />
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {selectedFriend.status_text}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => setSelectedFriend(null)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => removeFriend(selectedFriend.id)}
+                    className="px-3 py-1 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Remove Friend
+                  </button>
+                  <button
+                    onClick={() => setSelectedFriend(null)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

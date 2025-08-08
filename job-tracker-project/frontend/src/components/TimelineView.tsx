@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { API_BASE_URL } from '../services/api'
 
 interface TimelineEvent {
   id: string
@@ -54,7 +55,7 @@ export default function TimelineView({ applicationId }: TimelineViewProps) {
       const events: TimelineEvent[] = []
 
       // Fetch job applications
-      const appsResponse = await fetch('http://localhost:8000/api/job-applications/', {
+      const appsResponse = await fetch(`${API_BASE_URL}/api/job-applications/`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         }
@@ -82,7 +83,7 @@ export default function TimelineView({ applicationId }: TimelineViewProps) {
 
           // Fetch status transitions for this application
           try {
-            const transitionsResponse = await fetch(`http://localhost:8000/api/status/transitions/${app.id}`, {
+            const transitionsResponse = await fetch(`${API_BASE_URL}/api/status/transitions/${app.id}`, {
               headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
               }
@@ -113,7 +114,7 @@ export default function TimelineView({ applicationId }: TimelineViewProps) {
 
           // Fetch interviews for this application
           try {
-            const interviewsResponse = await fetch(`http://localhost:8000/api/interviews/job-application/${app.id}`, {
+            const interviewsResponse = await fetch(`${API_BASE_URL}/api/interviews/job-application/${app.id}`, {
               headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
               }

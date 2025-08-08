@@ -1,4 +1,5 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query'
+import { API_BASE_URL } from '../services/api'
 
 // Types for analytics data
 export interface AnalyticsSummary {
@@ -53,13 +54,13 @@ export interface StreakData {
 }
 
 // API client function
-const fetchWithAuth = async (endpoint: string) => {
+const fetchWithAuth = async <T = any>(endpoint: string): Promise<T> => {
   const token = localStorage.getItem('token')
   if (!token) {
     throw new Error('No authentication token')
   }
 
-  const response = await fetch(`http://localhost:8000/api${endpoint}`, {
+  const response = await fetch(`${API_BASE_URL}/api${endpoint}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -75,61 +76,61 @@ const fetchWithAuth = async (endpoint: string) => {
 
 // Hook for analytics summary
 export const useAnalyticsSummary = (): UseQueryResult<AnalyticsSummary> => {
-  return useQuery({
+  return useQuery<AnalyticsSummary>({
     queryKey: ['analytics', 'summary'],
-    queryFn: () => fetchWithAuth('/analytics/summary'),
+    queryFn: () => fetchWithAuth<AnalyticsSummary>('/analytics/summary'),
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   })
 }
 
 // Hook for timeline data
 export const useTimelineData = (days: number = 30): UseQueryResult<TimelineData> => {
-  return useQuery({
+  return useQuery<TimelineData>({
     queryKey: ['analytics', 'timeline', days],
-    queryFn: () => fetchWithAuth(`/analytics/timeline?days=${days}`),
+    queryFn: () => fetchWithAuth<TimelineData>(`/analytics/timeline?days=${days}`),
     staleTime: 10 * 60 * 1000, // 10 minutes
-    cacheTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
   })
 }
 
 // Hook for role distribution
 export const useRoleDistribution = (): UseQueryResult<RoleDistribution> => {
-  return useQuery({
+  return useQuery<RoleDistribution>({
     queryKey: ['analytics', 'role-distribution'],
-    queryFn: () => fetchWithAuth('/analytics/role-distribution'),
+    queryFn: () => fetchWithAuth<RoleDistribution>('/analytics/role-distribution'),
     staleTime: 30 * 60 * 1000, // 30 minutes
-    cacheTime: 60 * 60 * 1000, // 1 hour
+    gcTime: 60 * 60 * 1000, // 1 hour
   })
 }
 
 // Hook for company analysis
 export const useCompanyAnalysis = (): UseQueryResult<CompanyAnalysis> => {
-  return useQuery({
+  return useQuery<CompanyAnalysis>({
     queryKey: ['analytics', 'company-analysis'],
-    queryFn: () => fetchWithAuth('/analytics/company-analysis'),
+    queryFn: () => fetchWithAuth<CompanyAnalysis>('/analytics/company-analysis'),
     staleTime: 30 * 60 * 1000, // 30 minutes
-    cacheTime: 60 * 60 * 1000, // 1 hour
+    gcTime: 60 * 60 * 1000, // 1 hour
   })
 }
 
 // Hook for success rates
 export const useSuccessRates = (): UseQueryResult<SuccessRates> => {
-  return useQuery({
+  return useQuery<SuccessRates>({
     queryKey: ['analytics', 'success-rates'],
-    queryFn: () => fetchWithAuth('/analytics/success-rates'),
+    queryFn: () => fetchWithAuth<SuccessRates>('/analytics/success-rates'),
     staleTime: 10 * 60 * 1000, // 10 minutes
-    cacheTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
   })
 }
 
 // Hook for streak analytics
 export const useStreakAnalytics = (): UseQueryResult<StreakData> => {
-  return useQuery({
+  return useQuery<StreakData>({
     queryKey: ['analytics', 'streaks'],
-    queryFn: () => fetchWithAuth('/analytics/streaks'),
+    queryFn: () => fetchWithAuth<StreakData>('/analytics/streaks'),
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 15 * 60 * 1000, // 15 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes
   })
 }
 
@@ -177,7 +178,7 @@ export const useDataExport = () => {
       throw new Error('Invalid export configuration')
     }
 
-    const response = await fetch(`http://localhost:8000/api${endpoint}`, {
+    const response = await fetch(`${API_BASE_URL}/api${endpoint}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },

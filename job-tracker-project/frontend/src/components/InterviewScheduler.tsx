@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { API_BASE_URL } from '../services/api'
 
 interface InterviewSchedulerProps {
   applicationId: string
@@ -60,7 +61,7 @@ export default function InterviewScheduler({
       // Combine date and time
       const interviewDateTime = new Date(`${formData.interview_date}T${formData.interview_time}`)
       
-      const response = await fetch(`http://localhost:8000/api/job-applications/${applicationId}/interview`, {
+      const response = await fetch(`${API_BASE_URL}/api/job-applications/${applicationId}/interview`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

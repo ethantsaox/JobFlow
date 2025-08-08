@@ -419,8 +419,13 @@ class JobTrackerPopup {
     }
 
     openWebPage(path = '/dashboard') {
+        // Use production URL when published, localhost for development
+        const baseUrl = chrome.runtime.getManifest().version_name?.includes('dev') 
+            ? 'http://localhost:3000' 
+            : 'https://your-domain.com';  // Replace with your actual domain
+        
         chrome.tabs.create({
-            url: `http://localhost:3001${path}`
+            url: `${baseUrl}${path}`
         });
     }
 

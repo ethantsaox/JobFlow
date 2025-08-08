@@ -1,33 +1,36 @@
 from pydantic_settings import BaseSettings
 from typing import List
 import os
+import secrets
 
 class Settings(BaseSettings):
-    # Database
-    database_url: str = "postgresql://job_user:job_pass@localhost:5432/job_tracker"
-    postgres_user: str = "job_user"
-    postgres_password: str = "job_pass" 
-    postgres_db: str = "job_tracker"
+    # Database - Use environment variables, fallback to dev defaults
+    database_url: str = os.getenv("DATABASE_URL", "postgresql://job_user:job_pass@localhost:5432/job_tracker")
+    postgres_user: str = os.getenv("POSTGRES_USER", "job_user")
+    postgres_password: str = os.getenv("POSTGRES_PASSWORD", "job_pass")
+    postgres_db: str = os.getenv("POSTGRES_DB", "job_tracker")
     
-    # JWT
-    jwt_secret_key: str = "your-secret-key-here"
+    # JWT - Auto-generate secure key if not provided
+    jwt_secret_key: str = os.getenv("JWT_SECRET_KEY", secrets.token_urlsafe(32))
     jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
+    access_token_expire_minutes: int = 480  # 8 hours
     
-    # OpenAI
-    openai_api_key: str = "your-openai-key-here"
+    # OpenAI - Optional
+    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
     
-    # Extension
-    extension_secret: str = "your-extension-secret-key"
+    # Extension - Auto-generate if not provided
+    extension_secret: str = os.getenv("EXTENSION_SECRET", secrets.token_urlsafe(32))
     
     # Security
     rate_limit_per_minute: int = 100
     bcrypt_rounds: int = 12
     
     # Application
-    debug: bool = False
-    cors_origins: str = "http://localhost:3000,http://localhost:5173,chrome-extension://mhmcmnimdnkgilemaajpbhcobnjcjnpj"
-    log_level: str = "INFO"
+    environment: str = os.getenv("ENVIRONMENT", "development")
+    debug: bool = os.getenv("DEBUG", "false").lower() == "true"
+    cors_origins: str = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173,chrome-extension://mhmcmnimdnkgilemaajpbhcobnjcjnpj")
+    frontend_url: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    log_level: str = os.getenv("LOG_LEVEL", "INFO")
     
     # Redis
     redis_url: str = "redis://localhost:6379/0"
