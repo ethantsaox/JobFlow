@@ -3,7 +3,8 @@ import Navbar from '../components/Navbar'
 import { analyticsApi } from '../services/api'
 import { 
   StatusDistributionChart, 
-  ApplicationTimelineChart
+  ApplicationTimelineChart,
+  StatusTimelineChart
 } from '../components/JobChart'
 
 interface FilterState {
@@ -16,6 +17,7 @@ export default function Analytics() {
   })
   const [loading, setLoading] = useState(true)
   const [analyticsData, setAnalyticsData] = useState<any>(null)
+  
 
   useEffect(() => {
     loadAnalyticsData()
@@ -24,14 +26,16 @@ export default function Analytics() {
   const loadAnalyticsData = async () => {
     try {
       setLoading(true)
-      const [summaryResponse, timelineResponse] = await Promise.all([
+      const [summaryResponse, timelineResponse, statusTimelineResponse] = await Promise.all([
         analyticsApi.getSummary(),
-        analyticsApi.getTimeline(filters.timeRange)
+        analyticsApi.getTimeline(filters.timeRange),
+        analyticsApi.getStatusTimeline(filters.timeRange)
       ])
       
       setAnalyticsData({
         summary: summaryResponse.data,
-        timeline: timelineResponse.data
+        timeline: timelineResponse.data,
+        statusTimeline: statusTimelineResponse.data
       })
     } catch (error) {
       console.error('Error loading analytics data:', error)
@@ -50,6 +54,11 @@ export default function Analytics() {
           goal_progress_week: 0
         },
         timeline: {
+          timeline: [],
+          period_days: filters.timeRange,
+          total_applications: 0
+        },
+        statusTimeline: {
           timeline: [],
           period_days: filters.timeRange,
           total_applications: 0
@@ -229,15 +238,43 @@ export default function Analytics() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Application Timeline */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Application Timeline</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Application Timeline (Last {filters.timeRange} Days)</h3>
             <ApplicationTimelineChart data={loading ? [] : analyticsData?.timeline?.timeline || []} />
           </div>
 
           {/* Status Distribution */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Application Status</h3>
-            <StatusDistributionChart data={loading ? {} : analyticsData?.summary?.status_distribution || {}} />
+            <div className="h-80 flex items-center justify-center">
+              <StatusDistributionChart data={loading ? {} : analyticsData?.summary?.status_distribution || {}} />
+            </div>
           </div>
+        </div>
+
+        {/* Status Timeline - New chart below */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Status Distribution Timeline</h3>
+          <div className="h-64">
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+              </div>
+            ) : analyticsData?.statusTimeline?.timeline && analyticsData.statusTimeline.timeline.length > 0 ? (
+              <StatusTimelineChart data={analyticsData.statusTimeline.timeline} />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <p className="text-gray-500 dark:text-gray-400 mb-2">No status timeline data available</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500">
+                    {analyticsData?.statusTimeline ? `Data length: ${analyticsData.statusTimeline.timeline?.length || 0}` : 'No data'}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
 
           {/* Success Funnel */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">

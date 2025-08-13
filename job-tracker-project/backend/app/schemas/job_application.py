@@ -11,6 +11,7 @@ class JobApplicationBase(BaseModel):
     requirements: Optional[str] = None  
     salary_min: Optional[float] = Field(None, ge=0)
     salary_max: Optional[float] = Field(None, ge=0)
+    salary_text: Optional[str] = Field(None, max_length=255)
     location: Optional[str] = Field(None, max_length=255)
     remote_ok: bool = False
     job_type: Optional[str] = Field(None, max_length=50)
@@ -30,6 +31,7 @@ class JobApplicationUpdate(BaseModel):
     requirements: Optional[str] = None
     salary_min: Optional[float] = Field(None, ge=0)
     salary_max: Optional[float] = Field(None, ge=0)
+    salary_text: Optional[str] = Field(None, max_length=255)
     location: Optional[str] = Field(None, max_length=255)
     remote_ok: Optional[bool] = None
     job_type: Optional[str] = Field(None, max_length=50)

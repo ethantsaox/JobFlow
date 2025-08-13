@@ -30,6 +30,7 @@ class User(Base):
     analytics_sharing = Column(Boolean, default=False, nullable=False)
     theme = Column(String, default="light", nullable=False)  # 'light', 'dark', 'auto'
     date_format = Column(String, default="MM/DD/YYYY", nullable=False)  # 'MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD'
+    profile_picture = Column(String, nullable=True)  # Filename of uploaded profile picture
 
     # Relationships
     job_applications = relationship("JobApplication", back_populates="user", cascade="all, delete-orphan")

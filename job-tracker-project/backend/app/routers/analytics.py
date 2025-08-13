@@ -470,3 +470,75 @@ async def update_goals(
         "daily_goal": current_user.daily_goal,
         "weekly_goal": current_user.weekly_goal
     }
+
+@router.get("/status-timeline")
+@analytics_cache(ttl=600)  # Cache for 10 minutes
+async def get_status_timeline(
+    days: int = Query(30, ge=7, le=365),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """Get status distribution over time"""
+    
+    end_date = date.today()
+    start_date = end_date - timedelta(days=days)
+    
+    # Get all applications for the user within date range
+    applications = db.query(
+        func.date(JobApplication.applied_date).label('applied_date'),
+        JobApplication.status,
+        func.count(JobApplication.id).label('count')
+    ).filter(
+        and_(
+            JobApplication.user_id == current_user.id,
+            JobApplication.applied_date >= start_date,
+            JobApplication.applied_date <= end_date
+        )
+    ).group_by(
+        func.date(JobApplication.applied_date),
+        JobApplication.status
+    ).order_by(func.date(JobApplication.applied_date)).all()
+    
+    # Create timeline data structure
+    timeline_data = {}
+    current_date = start_date
+    
+    # Initialize all dates with zero counts for all statuses
+    while current_date <= end_date:
+        date_str = current_date.isoformat()
+        timeline_data[date_str] = {
+            'applied': 0,
+            'screening': 0, 
+            'interview': 0,
+            'offer': 0,
+            'rejected': 0
+        }
+        current_date += timedelta(days=1)
+    
+    
+    # Fill in actual data from database
+    for applied_date, status, count in applications:
+        date_str = applied_date.isoformat()
+        if date_str in timeline_data and status in timeline_data[date_str]:
+            timeline_data[date_str][status] = count
+    
+    # Convert to list format for frontend
+    timeline_list = []
+    for date_str in sorted(timeline_data.keys()):
+        data = timeline_data[date_str]
+        timeline_list.append({
+            'date': date_str,
+            'applied': data['applied'],
+            'screening': data['screening'],
+            'interview': data['interview'], 
+            'offer': data['offer'],
+            'rejected': data['rejected']
+        })
+    
+    total_apps = sum([sum(day.values()) for day in timeline_data.values()])
+    
+    return {
+        "timeline": timeline_list,
+        "period_days": days,
+        "total_applications": total_apps
+    }

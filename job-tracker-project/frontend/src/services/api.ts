@@ -72,6 +72,7 @@ api.interceptors.response.use(
 export const analyticsApi = {
   getSummary: () => api.get('/api/analytics/summary'),
   getTimeline: (days: number = 30) => api.get(`/api/analytics/timeline?days=${days}`),
+  getStatusTimeline: (days: number = 30) => api.get(`/api/analytics/status-timeline?days=${days}`),
   getStatusBreakdown: () => api.get('/api/analytics/status-breakdown'),
   getCompanyInsights: () => api.get('/api/analytics/companies'),
 }

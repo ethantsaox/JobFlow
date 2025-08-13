@@ -99,31 +99,32 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+# Add basic CORS first (always enabled for development)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origin_regex=r"chrome-extension://.*|http://localhost:.*|http://127\.0\.0\.1:.*",
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8080"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Add security middleware if available
 if SECURITY_ENABLED:
     try:
         # Re-enable SecurityMiddleware with fixed body handling
         app.add_middleware(SecurityMiddleware)
         
-        # Setup secure CORS
-        setup_cors_middleware(app)
+        # Setup secure CORS (in addition to basic CORS)
+        # setup_cors_middleware(app)
         
         # Setup CSRF protection (but disable for now)
         # setup_csrf_protection(app)
         
-        logger.info("Security middleware fully enabled")
+        logger.info("Security middleware enabled")
     except Exception as e:
         logger.error(f"Failed to setup security middleware: {e}")
-else:
-    # Fallback to basic CORS
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origin_regex=r"chrome-extension://.*|http://localhost:.*|http://127\.0\.0\.1:.*",
-        allow_origins=settings.cors_origins_list,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
 
 # Add rate limiting middleware
 app.state.limiter = limiter

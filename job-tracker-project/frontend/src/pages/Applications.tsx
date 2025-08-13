@@ -57,6 +57,8 @@ export default function Applications() {
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null)
   const [selectedApplications, setSelectedApplications] = useState<Set<string>>(new Set())
   const [, setShowBulkActions] = useState(false)
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState<string | null>(null)
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 })
   
   // Form data
   const [formData, setFormData] = useState({
@@ -299,6 +301,17 @@ export default function Applications() {
     fetchApplications()
   }, [])
 
+  // Close status dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setStatusDropdownOpen(null)
+    }
+    if (statusDropdownOpen) {
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [statusDropdownOpen])
+
   // Handle URL parameters
   useEffect(() => {
     if (searchParams.get('add') === 'true') {
@@ -312,6 +325,31 @@ export default function Applications() {
   const getStatusBadge = (status: string) => {
     const statusOption = statusOptions.find(opt => opt.value === status)
     return statusOption ? statusOption : statusOptions[0]
+  }
+
+  const updateApplicationStatus = async (applicationId: string, newStatus: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/job-applications/${applicationId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      })
+
+      if (response.ok) {
+        // Update local state immediately for better UX
+        setApplications(prev => prev.map(app => 
+          app.id === applicationId ? { ...app, status: newStatus as JobApplication['status'] } : app
+        ))
+        setStatusDropdownOpen(null) // Close dropdown
+      } else {
+        setError('Failed to update status')
+      }
+    } catch (err) {
+      setError('Network error while updating status')
+    }
   }
 
   return (
@@ -579,6 +617,7 @@ export default function Applications() {
                       return (
                         <tr 
                           key={application.id} 
+                          data-app-id={application.id}
                           className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
                           onClick={(e) => {
                             // Don't open detail if clicking on checkbox or links
@@ -607,11 +646,6 @@ export default function Applications() {
                               <div className="text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
                                 {application.title}
                               </div>
-                              {application.salary_text && (
-                                <div className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                                  💰 {application.salary_text}
-                                </div>
-                              )}
                             </div>
                           </td>
                           <td className="px-6 py-4">
@@ -649,9 +683,83 @@ export default function Applications() {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusBadge.color}`}>
-                              {statusBadge.label}
-                            </span>
+                            <div className="relative inline-block">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  const rect = e.currentTarget.getBoundingClientRect()
+                                  const dropdownWidth = 160 // 40 * 4 in pixels
+                                  setDropdownPosition({
+                                    top: rect.bottom + window.scrollY + 8,
+                                    left: Math.max(8, Math.min(
+                                      window.innerWidth - dropdownWidth - 8,
+                                      rect.left + window.scrollX - (dropdownWidth / 2) + (rect.width / 2)
+                                    ))
+                                  })
+                                  setStatusDropdownOpen(statusDropdownOpen === application.id ? null : application.id)
+                                }}
+                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusBadge.color} hover:opacity-80 cursor-pointer transition-opacity`}
+                              >
+                                {statusBadge.label}
+                              </button>
+                              
+                              {statusDropdownOpen === application.id && (
+                                <div 
+                                  className="fixed w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl z-[9999]"
+                                  style={{
+                                    top: `${dropdownPosition.top}px`,
+                                    left: `${dropdownPosition.left}px`
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <div className="py-2">
+                                    {statusOptions.map((option) => {
+                                      const isSelected = application.status === option.value
+                                      const colorClasses = {
+                                        'applied': 'text-blue-700 bg-blue-50 border-blue-200',
+                                        'screening': 'text-yellow-700 bg-yellow-50 border-yellow-200', 
+                                        'interview': 'text-purple-700 bg-purple-50 border-purple-200',
+                                        'offer': 'text-green-700 bg-green-50 border-green-200',
+                                        'rejected': 'text-red-700 bg-red-50 border-red-200'
+                                      }
+                                      const darkColorClasses = {
+                                        'applied': 'dark:text-blue-300 dark:bg-blue-900/20 dark:border-blue-800',
+                                        'screening': 'dark:text-yellow-300 dark:bg-yellow-900/20 dark:border-yellow-800',
+                                        'interview': 'dark:text-purple-300 dark:bg-purple-900/20 dark:border-purple-800', 
+                                        'offer': 'dark:text-green-300 dark:bg-green-900/20 dark:border-green-800',
+                                        'rejected': 'dark:text-red-300 dark:bg-red-900/20 dark:border-red-800'
+                                      }
+                                      
+                                      return (
+                                        <button
+                                          key={option.value}
+                                          onClick={() => updateApplicationStatus(application.id, option.value)}
+                                          className={`w-full text-left px-3 py-2.5 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 flex items-center space-x-2 ${
+                                            isSelected 
+                                              ? `${colorClasses[option.value as keyof typeof colorClasses]} ${darkColorClasses[option.value as keyof typeof darkColorClasses]} font-medium border-l-2` 
+                                              : 'text-gray-700 dark:text-gray-300'
+                                          }`}
+                                        >
+                                          <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                                            option.value === 'applied' ? 'bg-blue-500' :
+                                            option.value === 'screening' ? 'bg-yellow-500' :
+                                            option.value === 'interview' ? 'bg-purple-500' :
+                                            option.value === 'offer' ? 'bg-green-500' :
+                                            'bg-red-500'
+                                          }`}></div>
+                                          <span className="flex-1">{option.label}</span>
+                                          {isSelected && (
+                                            <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                            </svg>
+                                          )}
+                                        </button>
+                                      )
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {formatDate(application.applied_date)}
@@ -768,6 +876,19 @@ export default function Applications() {
                     placeholder="e.g., LinkedIn, Indeed"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Job URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.source_url}
+                  onChange={(e) => setFormData({...formData, source_url: e.target.value})}
+                  className="input w-full"
+                  placeholder="https://company.com/careers/job-posting"
+                />
               </div>
 
               <div>
@@ -912,6 +1033,19 @@ export default function Applications() {
                     placeholder="e.g., LinkedIn, Indeed"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Job URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.source_url}
+                  onChange={(e) => setFormData({...formData, source_url: e.target.value})}
+                  className="input w-full"
+                  placeholder="https://company.com/careers/job-posting"
+                />
               </div>
 
               <div>

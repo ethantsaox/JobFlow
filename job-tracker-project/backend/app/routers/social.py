@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_, func
 from typing import List, Optional
 from datetime import datetime
+import os
 
 from app.core.database import get_db
 from app.core.auth import get_current_user
@@ -44,6 +46,7 @@ class UserSearchResult(BaseModel):
     last_seen: Optional[datetime] = None
     friendship_status: Optional[str] = None
     can_send_request: bool
+    profile_picture_url: Optional[str] = None
 
 class FriendProfile(BaseModel):
     id: str
@@ -53,6 +56,7 @@ class FriendProfile(BaseModel):
     is_online: bool
     last_seen: Optional[datetime] = None
     status_text: str
+    profile_picture_url: Optional[str] = None
     
     # Stats (based on privacy settings)
     total_applications: Optional[int] = None
@@ -294,7 +298,8 @@ async def search_users(
             is_online=is_online,
             last_seen=last_seen,
             friendship_status=status_text,
-            can_send_request=can_send_request
+            can_send_request=can_send_request,
+            profile_picture_url=_get_profile_picture_url(user)
         ))
     
     return results
@@ -331,6 +336,12 @@ async def get_my_achievements(
     return achievements_data
 
 # Helper functions
+
+def _get_profile_picture_url(user: User) -> Optional[str]:
+    """Generate profile picture URL for a user"""
+    if user.profile_picture:
+        return f"/api/uploads/profile_pictures/{user.profile_picture}"
+    return None
 
 async def _build_friend_profile(friend_user: User, current_user: User, db: Session) -> FriendProfile:
     """Build a friend profile with stats based on privacy settings"""
@@ -458,6 +469,7 @@ async def _build_friend_profile(friend_user: User, current_user: User, db: Sessi
         is_online=is_online,
         last_seen=last_seen,
         status_text=status_text,
+        profile_picture_url=_get_profile_picture_url(friend_user),
         total_applications=total_applications,
         interview_count=interview_count,
         offer_count=offer_count,
@@ -563,3 +575,15 @@ async def get_my_status(
         "last_seen": online_status.last_seen,
         "last_activity": online_status.last_activity
     }
+
+# Profile Picture Endpoints
+@router.get("/uploads/profile_pictures/{filename}")
+async def get_profile_picture(filename: str):
+    """Serve profile picture files"""
+    file_path = os.path.join("uploads", "profile_pictures", filename)
+    
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Profile picture not found")
+    
+    return FileResponse(file_path)
+

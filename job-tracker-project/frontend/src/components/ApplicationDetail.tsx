@@ -15,8 +15,7 @@ interface JobApplication {
   applied_date: string
   source_platform?: string
   source_url?: string
-  salary_min?: number
-  salary_max?: number
+  salary_text?: string
   description?: string
   notes?: string
 }
@@ -48,11 +47,11 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
     company_name: '',
     location: '',
     status: 'applied' as JobApplication['status'],
-    salary_min: '',
-    salary_max: '',
+    salary_text: '',
     description: '',
     notes: '',
-    source_platform: ''
+    source_platform: '',
+    source_url: ''
   })
 
   // Fetch application details
@@ -73,11 +72,11 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
           company_name: data.company?.name || '',
           location: data.location || '',
           status: data.status,
-          salary_min: data.salary_min || '',
-          salary_max: data.salary_max || '',
+          salary_text: data.salary_text || '',
           description: data.description || '',
           notes: data.notes || '',
-          source_platform: data.source_platform || ''
+          source_platform: data.source_platform || '',
+          source_url: data.source_url || ''
         })
       } else {
         setError('Failed to fetch application details')
@@ -100,11 +99,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          ...formData,
-          salary_min: formData.salary_min ? Number(formData.salary_min) : undefined,
-          salary_max: formData.salary_max ? Number(formData.salary_max) : undefined
-        })
+        body: JSON.stringify(formData)
       })
 
       if (response.ok) {
@@ -118,11 +113,11 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
           } : { id: '', name: formData.company_name },
           location: formData.location,
           status: formData.status,
-          salary_min: formData.salary_min ? Number(formData.salary_min) : undefined,
-          salary_max: formData.salary_max ? Number(formData.salary_max) : undefined,
+          salary_text: formData.salary_text,
           description: formData.description,
           notes: formData.notes,
-          source_platform: formData.source_platform
+          source_platform: formData.source_platform,
+          source_url: formData.source_url
         } : null)
         setIsEditing(false)
         onUpdate()
@@ -151,11 +146,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          ...formData,
-          salary_min: formData.salary_min ? Number(formData.salary_min) : undefined,
-          salary_max: formData.salary_max ? Number(formData.salary_max) : undefined
-        })
+        body: JSON.stringify(formData)
       })
 
       if (response.ok) {
@@ -163,8 +154,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
         setApplication(prev => prev ? {
           ...prev,
           notes: formData.notes,
-          salary_min: formData.salary_min ? Number(formData.salary_min) : undefined,
-          salary_max: formData.salary_max ? Number(formData.salary_max) : undefined
+          salary_text: formData.salary_text
         } : null)
         onUpdate()
       } else {
@@ -333,33 +323,17 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Min Salary
-                    </label>
-                    <input
-                      type="number"
-                      step="5000"
-                      value={formData.salary_min}
-                      onChange={(e) => setFormData({...formData, salary_min: e.target.value})}
-                      className="input w-full"
-                      placeholder="80000"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Max Salary
-                    </label>
-                    <input
-                      type="number"
-                      step="5000"
-                      value={formData.salary_max}
-                      onChange={(e) => setFormData({...formData, salary_max: e.target.value})}
-                      className="input w-full"
-                      placeholder="100000"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Salary
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.salary_text}
+                    onChange={(e) => setFormData({...formData, salary_text: e.target.value})}
+                    className="input w-full"
+                    placeholder="e.g., $80,000 - $100,000 or Competitive"
+                  />
                 </div>
                 
                 <div>
@@ -374,6 +348,19 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
                     placeholder="e.g., LinkedIn, Indeed"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Job URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.source_url}
+                  onChange={(e) => setFormData({...formData, source_url: e.target.value})}
+                  className="input w-full"
+                  placeholder="https://company.com/careers/job-posting"
+                />
               </div>
 
               <div>
@@ -461,7 +448,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
 
                   {/* Job Description */}
                   {application.description && (
-                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg p-6">
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Job Description</h3>
                       <div className="max-h-96 overflow-y-auto">
                         <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{application.description}</p>
@@ -474,7 +461,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
                 {/* Sidebar */}
                 <div className="space-y-6">
                   {/* Status */}
-                  <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
                     <div className="flex items-center">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex-1">Current Status</h3>
                       <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusBadge(application.status).color}`}>
@@ -484,7 +471,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
                   </div>
 
                   {/* Quick Notes */}
-                  <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg p-6">
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">📝 Quick Notes</h3>
                     <textarea
                       value={formData.notes}
@@ -496,34 +483,16 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
                   </div>
 
                   {/* Salary Info */}
-                  <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">💰 Salary Range</h3>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Min</label>
-                        <input
-                          type="number"
-                          step="5000"
-                          value={formData.salary_min}
-                          onChange={(e) => setFormData({...formData, salary_min: e.target.value})}
-                          onBlur={handleQuickUpdate}
-                          className="input w-full text-sm"
-                          placeholder="80000"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Max</label>
-                        <input
-                          type="number"
-                          step="5000"
-                          value={formData.salary_max}
-                          onChange={(e) => setFormData({...formData, salary_max: e.target.value})}
-                          onBlur={handleQuickUpdate}
-                          className="input w-full text-sm"
-                          placeholder="100000"
-                        />
-                      </div>
-                    </div>
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">💰 Salary</h3>
+                    <input
+                      type="text"
+                      value={formData.salary_text}
+                      onChange={(e) => setFormData({...formData, salary_text: e.target.value})}
+                      onBlur={handleQuickUpdate}
+                      className="input w-full text-sm"
+                      placeholder="e.g., $80k-100k, Competitive, DOE"
+                    />
                   </div>
 
                 </div>

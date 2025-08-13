@@ -19,6 +19,7 @@ class JobApplication(Base):
     requirements = Column(Text, nullable=True)
     salary_min = Column(Numeric(10, 2), nullable=True)
     salary_max = Column(Numeric(10, 2), nullable=True)
+    salary_text = Column(String, nullable=True)
     location = Column(String, nullable=True)
     remote_ok = Column(Boolean, default=False, nullable=False)
     job_type = Column(String, nullable=True)  # full-time, part-time, contract, etc.

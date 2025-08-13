@@ -21,6 +21,19 @@ export interface TimelineData {
   total_applications: number
 }
 
+export interface StatusTimelineData {
+  timeline: { 
+    date: string; 
+    applied: number;
+    screening: number;
+    interview: number;
+    offer: number;
+    rejected: number;
+  }[]
+  period_days: number
+  total_applications: number
+}
+
 export interface RoleDistribution {
   role_distribution: { role: string; count: number }[]
   top_titles: { title: string; count: number }[]
@@ -93,6 +106,7 @@ export const useTimelineData = (days: number = 30): UseQueryResult<TimelineData>
     gcTime: 30 * 60 * 1000, // 30 minutes
   })
 }
+
 
 // Hook for role distribution
 export const useRoleDistribution = (): UseQueryResult<RoleDistribution> => {
