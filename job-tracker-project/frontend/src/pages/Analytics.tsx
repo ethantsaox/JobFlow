@@ -138,15 +138,6 @@ export default function Analytics() {
               <p className="text-gray-600 dark:text-gray-300 mt-1">Deep insights into your job search progress</p>
             </div>
             
-            {/* Export Controls */}
-            <div className="flex space-x-3">
-              <button
-                onClick={() => window.print()}
-                className="btn-secondary text-sm print:hidden"
-              >
-                🖨️ Print
-              </button>
-            </div>
           </div>
 
           {/* Filters */}

@@ -425,11 +425,13 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
                         <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Applied Date</label>
                         <p className="text-gray-900 dark:text-gray-100">{new Date(application.applied_date).toLocaleDateString()}</p>
                       </div>
-                      {application.source_platform && (
+                      {(application.source_platform || application.source_url) && (
                         <div>
                           <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Source</label>
                           <div className="flex items-center space-x-2">
-                            <p className="text-gray-900 dark:text-gray-100">{application.source_platform}</p>
+                            {application.source_platform && (
+                              <p className="text-gray-900 dark:text-gray-100">{application.source_platform}</p>
+                            )}
                             {application.source_url && (
                               <a
                                 href={application.source_url}
@@ -437,7 +439,7 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
                               >
-                                🔗 View Original
+                                🔗 View Job Posting
                               </a>
                             )}
                           </div>
