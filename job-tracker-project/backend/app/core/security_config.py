@@ -46,8 +46,8 @@ class SecuritySettings(BaseSettings):
     debug: bool = False
     
     # Security Headers
-    enable_cors: bool = True
-    enable_csrf_protection: bool = True
+    enable_cors: bool = os.getenv("ENABLE_CORS", "true").lower() == "true"
+    enable_csrf_protection: bool = os.getenv("ENABLE_CSRF_PROTECTION", "false").lower() == "true"
     
     # Encryption
     encryption_key: Optional[str] = None

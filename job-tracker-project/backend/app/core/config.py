@@ -33,7 +33,23 @@ class Settings(BaseSettings):
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
     
     # Redis
-    redis_url: str = "redis://localhost:6379/0"
+    redis_url: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    
+    # File Upload Configuration
+    max_upload_size: int = int(os.getenv("MAX_UPLOAD_SIZE", "10485760"))  # 10MB default
+    upload_path: str = os.getenv("UPLOAD_PATH", "./uploads")
+    
+    # Database Connection Pool Settings  
+    database_pool_size: int = int(os.getenv("DATABASE_POOL_SIZE", "5"))
+    database_max_overflow: int = int(os.getenv("DATABASE_MAX_OVERFLOW", "10"))
+    database_pool_timeout: int = int(os.getenv("DATABASE_POOL_TIMEOUT", "30"))
+    
+    # Admin Security
+    admin_ips: str = os.getenv("ADMIN_IPS", "")
+    
+    # SSL Configuration
+    ssl_cert_path: str = os.getenv("SSL_CERT_PATH", "")
+    ssl_key_path: str = os.getenv("SSL_KEY_PATH", "")
 
     class Config:
         env_file = ".env"

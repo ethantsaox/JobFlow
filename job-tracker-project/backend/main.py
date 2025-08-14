@@ -13,12 +13,10 @@ from dotenv import load_dotenv
 # Import basic configurations first
 from app.core.config import settings
 
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Setup structured logging
+from app.core.logging_config import setup_logging, get_logger
+setup_logging()
+logger = get_logger('main')
 
 load_dotenv()
 
@@ -100,15 +98,27 @@ app = FastAPI(
 )
 
 
-# Add basic CORS first (always enabled for development)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origin_regex=r"chrome-extension://.*|http://localhost:.*|http://127\.0\.0\.1:.*",
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8080"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Add CORS configuration based on environment
+if settings.environment == "production":
+    # Production CORS - use only configured origins
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins_list,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allow_headers=["Accept", "Accept-Language", "Content-Language", "Content-Type", "Authorization", "X-Requested-With", "X-API-Key", "X-CSRF-Token"],
+        max_age=86400  # 24 hours
+    )
+else:
+    # Development CORS - more permissive
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=r"chrome-extension://.*|http://localhost:.*|http://127\.0\.0\.1:.*",
+        allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8080", "http://localhost:5173"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # Add security middleware if available
 if SECURITY_ENABLED:
@@ -119,12 +129,17 @@ if SECURITY_ENABLED:
         # Setup secure CORS (in addition to basic CORS)
         # setup_cors_middleware(app)
         
-        # Setup CSRF protection (but disable for now)
-        # setup_csrf_protection(app)
+        # Setup CSRF protection
+        setup_csrf_protection(app)
         
         logger.info("Security middleware enabled")
     except Exception as e:
         logger.error(f"Failed to setup security middleware: {e}")
+
+# Add monitoring middleware
+from app.core.monitoring import setup_monitoring, MonitoringMiddleware, health_checker, metrics_collector
+setup_monitoring()
+app.add_middleware(MonitoringMiddleware, metrics_collector=metrics_collector)
 
 # Add rate limiting middleware
 app.state.limiter = limiter
@@ -139,7 +154,13 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "message": "API is running"}
+    """Comprehensive health check endpoint"""
+    return await health_checker.get_health_status()
+
+@app.get("/metrics")
+async def get_metrics():
+    """Application metrics endpoint"""
+    return metrics_collector.get_metrics()
 
 # Import routers
 from app.routers import auth, job_applications, companies, analytics, ai, social, settings

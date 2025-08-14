@@ -1,0 +1,375 @@
+name: JobFlow CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Security and Dependency Scanning
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # Backend Testing and Linting
+  backend-test:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements-dev.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Lint with flake8
+        working-directory: ./backend
+        run: |
+          flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 app/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Type check with mypy
+        working-directory: ./backend
+        run: |
+          mypy app/ --ignore-missing-imports
+
+      - name: Security audit with pip-audit
+        working-directory: ./backend
+        run: |
+          pip-audit --format=json --output=audit-results.json
+        continue-on-error: true
+
+      - name: Run tests with pytest
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379/0
+          ENVIRONMENT: testing
+          JWT_SECRET_KEY: test-secret-key-for-testing-only
+        run: |
+          pytest --cov=app --cov-report=xml --cov-report=html tests/
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage.xml
+          flags: backend
+          name: backend-coverage
+
+  # Frontend Testing and Linting
+  frontend-test:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Lint with ESLint
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Type check with TypeScript
+        working-directory: ./frontend
+        run: npx tsc --noEmit
+
+      - name: Run tests
+        working-directory: ./frontend
+        run: npm test
+
+      - name: Build application
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/dist/
+
+  # Docker Build and Security Scan
+  docker-build:
+    name: Docker Build & Scan
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-test]
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Backend
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - name: Build and push Backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          target: production
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata (tags, labels) for Frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - name: Build and push Frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          target: production
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run Trivy vulnerability scanner on Backend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.meta-backend.outputs.tags }}
+          format: 'sarif'
+          output: 'trivy-backend-results.sarif'
+
+      - name: Run Trivy vulnerability scanner on Frontend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.meta-frontend.outputs.tags }}
+          format: 'sarif'
+          output: 'trivy-frontend-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-backend-results.sarif'
+
+  # Integration Tests
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run integration tests
+        run: |
+          # Pull the built images
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.ref_name }}
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.ref_name }}
+          
+          # Start the application stack
+          docker-compose -f docker-compose.production.yml up -d
+          
+          # Wait for services to be ready
+          sleep 30
+          
+          # Run health checks
+          curl -f http://localhost:8000/health || exit 1
+          curl -f http://localhost:80/health || exit 1
+          
+          # Run API integration tests
+          docker run --rm --network host \
+            -v ${{ github.workspace }}/backend:/app \
+            python:3.11-slim sh -c "
+              cd /app && 
+              pip install pytest httpx && 
+              pytest tests/integration/ -v
+            "
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker-compose -f docker-compose.production.yml down -v
+
+  # Production Deployment (only on main branch and releases)
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [security-scan, backend-test, frontend-test, docker-build, integration-test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          script: |
+            # Navigate to application directory
+            cd /opt/jobflow
+            
+            # Pull latest images
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:main
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:main
+            
+            # Create backup of current deployment
+            docker-compose -f docker-compose.production.yml exec postgres pg_dump -U $POSTGRES_USER $POSTGRES_DB > backup_$(date +%Y%m%d_%H%M%S).sql
+            
+            # Deploy new version with zero-downtime
+            docker-compose -f docker-compose.production.yml up -d --no-deps backend frontend
+            
+            # Wait for health checks
+            sleep 30
+            
+            # Verify deployment
+            curl -f http://localhost:8000/health || exit 1
+            curl -f http://localhost:80/health || exit 1
+            
+            # Cleanup old images
+            docker image prune -f
+
+      - name: Notify deployment status
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          text: "JobFlow deployment to production: ${{ job.status }}"
+
+  # Staging Deployment (on develop branch)
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [security-scan, backend-test, frontend-test, docker-build]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to staging server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            cd /opt/jobflow-staging
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:develop
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:develop
+            docker-compose -f docker-compose.yml up -d --force-recreate

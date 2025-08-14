@@ -9,7 +9,7 @@ const api: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  timeout: 5000, // Reduced timeout for faster feedback
 })
 
 // Request interceptor to add auth token

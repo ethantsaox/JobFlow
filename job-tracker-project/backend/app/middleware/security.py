@@ -208,7 +208,8 @@ class IPWhitelistMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
         super().__init__(app)
         # Add your trusted IPs here for admin endpoints
-        self.admin_whitelist = set(os.getenv("ADMIN_IPS", "").split(","))
+        admin_ips_str = os.getenv("ADMIN_IPS", "")
+        self.admin_whitelist = set(admin_ips_str.split(",")) if admin_ips_str else set()
     
     async def dispatch(self, request: Request, call_next):
         # Only apply to admin endpoints

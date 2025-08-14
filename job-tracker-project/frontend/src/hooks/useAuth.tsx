@@ -27,9 +27,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Clear invalid tokens
         AuthService.clearTokens()
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to initialize auth:', error)
-      AuthService.clearTokens()
+      
+      // Only clear tokens if it's an authentication error, not a network error
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        AuthService.clearTokens()
+      } else if (error?.code === 'ECONNABORTED' || error?.message?.includes('timeout')) {
+        console.warn('Backend connection timeout - will retry later')
+        // Don't clear tokens on network timeouts, user might be offline
+      } else if (error?.code === 'ERR_NETWORK') {
+        console.warn('Network error - backend may be unavailable')
+        // Don't clear tokens on network errors
+      } else {
+        AuthService.clearTokens()
+      }
     } finally {
       setLoading(false)
     }
