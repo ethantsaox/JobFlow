@@ -31,6 +31,12 @@ export interface AuthContextType {
   logout: () => void
   loading: boolean
   isAuthenticated: boolean
+  // Guest mode properties
+  isGuestMode: boolean
+  dataMode: 'local' | 'authenticated'
+  switchToGuestMode: () => void
+  switchToAuthenticatedMode: () => void
+  syncLocalDataToServer: () => Promise<{ success: boolean, message: string }>
 }
 
 export interface ApiError {

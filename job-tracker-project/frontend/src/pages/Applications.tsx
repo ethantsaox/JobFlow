@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
-import { API_BASE_URL } from '../services/api'
+import DataManager from '../services/dataManager'
 import ApplicationDetail from '../components/ApplicationDetail'
 import { formatDate } from '../utils/dateUtils'
 
@@ -79,21 +79,13 @@ export default function Applications() {
   const fetchApplications = async (showLoading = true) => {
     try {
       if (showLoading) setLoading(true)
-      const response = await fetch(`${API_BASE_URL}/api/job-applications/`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setApplications(data)
-        setFilteredApplications(data)
-      } else {
-        setError('Failed to fetch applications')
-      }
+      const data = await DataManager.getApplications()
+      setApplications(data)
+      setFilteredApplications(data)
+      setError(null)
     } catch (err) {
-      setError('Network error while fetching applications')
+      console.error('Error fetching applications:', err)
+      setError('Error loading applications')
     } finally {
       if (showLoading) setLoading(false)
     }
@@ -143,28 +135,22 @@ export default function Applications() {
     e.preventDefault()
     
     try {
-      const response = await fetch(`${API_BASE_URL}/api/job-applications/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...formData,
-          applied_date: new Date().toISOString()
-        })
+      await DataManager.createApplication({
+        ...formData,
+        applied_date: new Date().toISOString(),
+        company: {
+          id: '', // Will be generated
+          name: formData.company,
+        }
       })
-
-      if (response.ok) {
-        await fetchApplications()
-        setShowAddModal(false)
-        resetForm()
-      } else {
-        const errorData = await response.json()
-        setError(errorData.detail || 'Failed to add application')
-      }
+      
+      await fetchApplications()
+      setShowAddModal(false)
+      resetForm()
+      setError(null)
     } catch (err) {
-      setError('Network error while adding application')
+      console.error('Error adding application:', err)
+      setError('Error adding application')
     }
   }
 
@@ -174,26 +160,22 @@ export default function Applications() {
     if (!selectedApplication) return
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/job-applications/${selectedApplication.id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
+      await DataManager.updateApplication(selectedApplication.id, {
+        ...formData,
+        company: {
+          id: selectedApplication.company?.id || '',
+          name: formData.company,
+        }
       })
-
-      if (response.ok) {
-        await fetchApplications()
-        setShowEditModal(false)
-        resetForm()
-        setSelectedApplication(null)
-      } else {
-        const errorData = await response.json()
-        setError(errorData.detail || 'Failed to update application')
-      }
+      
+      await fetchApplications()
+      setShowEditModal(false)
+      resetForm()
+      setSelectedApplication(null)
+      setError(null)
     } catch (err) {
-      setError('Network error while updating application')
+      console.error('Error updating application:', err)
+      setError('Error updating application')
     }
   }
 
@@ -329,26 +311,17 @@ export default function Applications() {
 
   const updateApplicationStatus = async (applicationId: string, newStatus: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/job-applications/${applicationId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status: newStatus })
-      })
-
-      if (response.ok) {
-        // Update local state immediately for better UX
-        setApplications(prev => prev.map(app => 
-          app.id === applicationId ? { ...app, status: newStatus as JobApplication['status'] } : app
-        ))
-        setStatusDropdownOpen(null) // Close dropdown
-      } else {
-        setError('Failed to update status')
-      }
+      await DataManager.updateApplication(applicationId, { status: newStatus })
+      
+      // Update local state immediately for better UX
+      setApplications(prev => prev.map(app => 
+        app.id === applicationId ? { ...app, status: newStatus as JobApplication['status'] } : app
+      ))
+      setStatusDropdownOpen(null) // Close dropdown
+      setError(null)
     } catch (err) {
-      setError('Network error while updating status')
+      console.error('Error updating status:', err)
+      setError('Error updating status')
     }
   }
 

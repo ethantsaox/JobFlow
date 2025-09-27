@@ -4,11 +4,13 @@ import { useAuth } from '../hooks/useAuth'
 import { useDarkMode } from '../hooks/useDarkMode'
 
 export default function Navbar() {
-  const { user, logout } = useAuth()
+  const { user, logout, isGuestMode, isAuthenticated, switchToGuestMode, switchToAuthenticatedMode, syncLocalDataToServer } = useAuth()
   const { toggleTheme, isDark } = useDarkMode()
   const navigate = useNavigate()
   const location = useLocation()
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
+  const [showModeTooltip, setShowModeTooltip] = useState(false)
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle')
   
   const getLinkClasses = (path: string) => {
     const isActive = location.pathname === path
@@ -19,6 +21,30 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await logout()
+    navigate('/login')
+  }
+
+  const handleSyncData = async () => {
+    if (!isGuestMode) return
+
+    setSyncStatus('syncing')
+    try {
+      const result = await syncLocalDataToServer()
+      if (result.success) {
+        setSyncStatus('success')
+        setTimeout(() => setSyncStatus('idle'), 2000)
+      } else {
+        setSyncStatus('error')
+        setTimeout(() => setSyncStatus('idle'), 2000)
+      }
+    } catch (error) {
+      setSyncStatus('error')
+      setTimeout(() => setSyncStatus('idle'), 2000)
+    }
+  }
+
+  const handleSwitchToAuthenticated = () => {
+    switchToAuthenticatedMode()
     navigate('/login')
   }
 
@@ -66,6 +92,71 @@ export default function Navbar() {
             </div>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
+            {/* Mode Indicator */}
+            <div 
+              className="relative"
+              onMouseEnter={() => setShowModeTooltip(true)}
+              onMouseLeave={() => setShowModeTooltip(false)}
+            >
+              <div 
+                className={`flex items-center px-3 py-1 rounded-full text-xs font-medium cursor-pointer ${
+                  isGuestMode 
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                }`}
+              >
+                <span className="mr-1">
+                  {isGuestMode ? '🏠' : '☁️'}
+                </span>
+                {isGuestMode ? 'Local Mode' : 'Cloud Mode'}
+              </div>
+
+              {/* Mode Tooltip */}
+              {showModeTooltip && (
+                <div className="absolute top-full right-0 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-4 z-50 mt-0">
+                  <div className="text-sm">
+                    {isGuestMode ? (
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white mb-2">Local Mode</p>
+                        <p className="text-gray-600 dark:text-gray-300 mb-3">Your data is stored locally on this device.</p>
+                        <div className="space-y-2">
+                          <button 
+                            onClick={handleSwitchToAuthenticated}
+                            className="w-full text-left px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                          >
+                            ☁️ Switch to Cloud Modem
+                          </button>
+                          {isAuthenticated && (
+                            <button 
+                              onClick={handleSyncData}
+                              disabled={syncStatus === 'syncing'}
+                              className="w-full text-left px-3 py-2 text-sm bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors disabled:opacity-50"
+                            >
+                              {syncStatus === 'syncing' ? '⏳ Syncing...' : 
+                               syncStatus === 'success' ? '✅ Synced!' : 
+                               syncStatus === 'error' ? '❌ Sync Failed' : 
+                               '🔄 Sync to Cloud'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white mb-2">Cloud Mode</p>
+                        <p className="text-gray-600 dark:text-gray-300 mb-3">Your data is synced across all devices.</p>
+                        <button 
+                          onClick={switchToGuestMode}
+                          className="w-full text-left px-3 py-2 text-sm bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors"
+                        >
+                          🏠 Switch to Local Mode
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Dark Mode Toggle */}
             <button
               onClick={toggleTheme}

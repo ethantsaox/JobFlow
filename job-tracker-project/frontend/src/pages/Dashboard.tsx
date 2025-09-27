@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar'
 import SocialWidget from '../components/SocialWidget'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { analyticsApi, API_BASE_URL } from '../services/api'
+import DataManager from '../services/dataManager'
 
 interface DashboardStats {
   total_applications: number
@@ -37,10 +37,10 @@ export default function Dashboard() {
   const loadStats = async () => {
     try {
       setLoading(true)
-      const response = await analyticsApi.getSummary()
-      setStats(response.data)
-      setTempDailyGoal(response.data.daily_goal || 5)
-      setTempWeeklyGoal(response.data.weekly_goal || 25)
+      const data = await DataManager.getAnalyticsSummary()
+      setStats(data)
+      setTempDailyGoal(data.daily_goal || 5)
+      setTempWeeklyGoal(data.weekly_goal || 25)
       setLoading(false)
     } catch (error) {
       console.error('Error loading stats:', error)
@@ -64,24 +64,16 @@ export default function Dashboard() {
   const loadRecentAchievements = async () => {
     try {
       setAchievementsLoading(true)
-      const token = localStorage.getItem('token')
-      const response = await fetch(`${API_BASE_URL}/api/social/achievements/me`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      const data = await DataManager.getAchievements()
       
-      if (response.ok) {
-        const data = await response.json()
-        // Get all unlocked achievements and sort by unlock date
-        const allUnlockedAchievements = Object.values(data.by_category)
-          .flat()
-          .filter((achievement: any) => achievement.unlocked && achievement.unlocked_at)
-          .sort((a: any, b: any) => new Date(b.unlocked_at).getTime() - new Date(a.unlocked_at).getTime())
-          .slice(0, 3)
-        
-        setRecentAchievements(allUnlockedAchievements)
-      }
+      // Get all unlocked achievements and sort by unlock date
+      const allUnlockedAchievements = Object.values(data.by_category || {})
+        .flat()
+        .filter((achievement: any) => achievement.unlocked && achievement.unlocked_at)
+        .sort((a: any, b: any) => new Date(b.unlocked_at).getTime() - new Date(a.unlocked_at).getTime())
+        .slice(0, 3)
+      
+      setRecentAchievements(allUnlockedAchievements)
     } catch (error) {
       console.error('Error loading recent achievements:', error)
     } finally {
@@ -91,20 +83,9 @@ export default function Dashboard() {
 
   const saveGoals = async () => {
     try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(`${API_BASE_URL}/api/analytics/goals`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          daily_goal: tempDailyGoal,
-          weekly_goal: tempWeeklyGoal
-        })
-      })
-
-      if (response.ok) {
+      const success = await DataManager.updateUserGoals(tempDailyGoal, tempWeeklyGoal)
+      
+      if (success) {
         // Reload stats to reflect changes
         await loadStats()
         setEditingGoals(false)

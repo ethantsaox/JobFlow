@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { AuthService } from '../services/auth'
+import DataManager, { DataMode } from '../services/dataManager'
 import type { User, LoginFormData, RegisterFormData, AuthContextType } from '../types/auth'
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -8,6 +9,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [dataMode, setDataMode] = useState<DataMode>('local')
 
   useEffect(() => {
     initializeAuth()
@@ -16,35 +18,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const initializeAuth = async () => {
     setLoading(true)
     try {
-      const storedToken = AuthService.getToken()
+      // Initialize DataManager mode first
+      DataManager.initializeMode()
+      const currentMode = DataManager.getCurrentMode()
+      setDataMode(currentMode)
+
+      // Try to get user from DataManager (handles both modes)
+      const currentUser = await DataManager.getUser()
       
-      if (storedToken && AuthService.hasValidToken()) {
-        setToken(storedToken)
-        // Fetch current user info
-        const currentUser = await AuthService.getCurrentUser()
-        setUser(currentUser)
+      if (currentMode === 'authenticated') {
+        const storedToken = AuthService.getToken()
+        
+        if (storedToken && AuthService.hasValidToken() && currentUser) {
+          setToken(storedToken)
+          setUser(currentUser)
+        } else {
+          // Switch to guest mode if auth fails
+          switchToGuestMode()
+        }
       } else {
-        // Clear invalid tokens
-        AuthService.clearTokens()
+        // Guest mode - get local user
+        setUser(currentUser)
+        setToken(null)
       }
     } catch (error: any) {
       console.error('Failed to initialize auth:', error)
       
-      // Only clear tokens if it's an authentication error, not a network error
-      if (error?.response?.status === 401 || error?.response?.status === 403) {
-        AuthService.clearTokens()
-      } else if (error?.code === 'ECONNABORTED' || error?.message?.includes('timeout')) {
-        console.warn('Backend connection timeout - will retry later')
-        // Don't clear tokens on network timeouts, user might be offline
-      } else if (error?.code === 'ERR_NETWORK') {
-        console.warn('Network error - backend may be unavailable')
-        // Don't clear tokens on network errors
-      } else {
-        AuthService.clearTokens()
-      }
+      // On any error, fall back to guest mode
+      switchToGuestMode()
     } finally {
       setLoading(false)
     }
+  }
+
+  const switchToGuestMode = () => {
+    DataManager.setMode('local')
+    setDataMode('local')
+    setToken(null)
+    AuthService.clearTokens()
+    
+    // Get local user
+    DataManager.getUser().then(localUser => {
+      setUser(localUser)
+    }).catch(console.error)
+  }
+
+  const switchToAuthenticatedMode = () => {
+    DataManager.setMode('authenticated')
+    setDataMode('authenticated')
+    // Note: This just sets the mode, actual login still required
+  }
+
+  const syncLocalDataToServer = async () => {
+    return await DataManager.syncLocalToServer()
   }
 
   const login = async (credentials: LoginFormData) => {
@@ -55,6 +81,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Store tokens
       AuthService.setTokens(authResponse)
       setToken(authResponse.access_token)
+      
+      // Switch to authenticated mode
+      DataManager.setMode('authenticated')
+      setDataMode('authenticated')
       
       // Get user info
       const currentUser = await AuthService.getCurrentUser()
@@ -83,6 +113,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: userData.email,
         password: userData.password,
       })
+
+      // After successful registration and login, sync any local data
+      if (dataMode === 'authenticated') {
+        try {
+          await syncLocalDataToServer()
+        } catch (error) {
+          console.warn('Failed to sync local data after registration:', error)
+        }
+      }
     } catch (error) {
       console.error('Registration failed:', error)
       throw error
@@ -101,7 +140,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       AuthService.clearTokens()
       setToken(null)
-      setUser(null)
+      
+      // Switch back to guest mode and get local user
+      switchToGuestMode()
     }
   }
 
@@ -113,6 +154,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     loading,
     isAuthenticated: !!user && !!token,
+    isGuestMode: dataMode === 'local',
+    dataMode,
+    switchToGuestMode,
+    switchToAuthenticatedMode,
+    syncLocalDataToServer,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

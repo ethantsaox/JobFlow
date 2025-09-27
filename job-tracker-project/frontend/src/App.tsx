@@ -5,6 +5,7 @@ import { AuthProvider } from './hooks/useAuth'
 import { DarkModeProvider } from './hooks/useDarkMode'
 import { useOnlineStatus } from './hooks/useOnlineStatus'
 import ProtectedRoute from './components/ProtectedRoute'
+import InitialRoute from './components/InitialRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
@@ -105,11 +106,11 @@ const App: FC = () => {
                 }
               />
               
-              {/* Default redirect */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              {/* Default redirect - handles welcome vs dashboard */}
+              <Route path="/" element={<InitialRoute />} />
               
               {/* 404 fallback */}
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<InitialRoute />} />
               </Routes>
               </div>
             </Router>
