@@ -163,50 +163,55 @@ def get_logging_config() -> Dict[str, Any]:
     }
     
     # Add file logging for production
-    if settings.environment == 'production':
-        # Create logs directory
-        log_dir = '/app/logs'
-        os.makedirs(log_dir, exist_ok=True)
+    if settings.environment == 'production' and not os.getenv('DISABLE_FILE_LOGGING'):
+        # Create logs directory - use writable temp directory for containers
+        log_dir = os.getenv('LOG_DIRECTORY', '/tmp/logs')
+        try:
+            os.makedirs(log_dir, exist_ok=True)
+        except PermissionError:
+            # Fall back to console only if we can't create log directory
+            log_dir = None
         
-        # Add file handlers
-        config['handlers'].update({
-            'file_app': {
-                'class': 'logging.handlers.RotatingFileHandler',
-                'level': log_level,
-                'formatter': 'json',
-                'filters': ['security_filter'],
-                'filename': f'{log_dir}/app.log',
-                'maxBytes': 100 * 1024 * 1024,  # 100MB
-                'backupCount': 5,
-                'encoding': 'utf-8'
-            },
-            'file_security': {
-                'class': 'logging.handlers.RotatingFileHandler',
-                'level': 'WARNING',
-                'formatter': 'json',
-                'filters': ['security_filter'],
-                'filename': f'{log_dir}/security.log',
-                'maxBytes': 50 * 1024 * 1024,  # 50MB
-                'backupCount': 10,
-                'encoding': 'utf-8'
-            },
-            'file_error': {
-                'class': 'logging.handlers.RotatingFileHandler',
-                'level': 'ERROR',
-                'formatter': 'json',
-                'filters': ['security_filter'],
-                'filename': f'{log_dir}/error.log',
-                'maxBytes': 50 * 1024 * 1024,  # 50MB
+        # Add file handlers only if log directory is available
+        if log_dir:
+            config['handlers'].update({
+                'file_app': {
+                    'class': 'logging.handlers.RotatingFileHandler',
+                    'level': log_level,
+                    'formatter': 'json',
+                    'filters': ['security_filter'],
+                    'filename': f'{log_dir}/app.log',
+                    'maxBytes': 100 * 1024 * 1024,  # 100MB
+                    'backupCount': 5,
+                    'encoding': 'utf-8'
+                },
+                'file_security': {
+                    'class': 'logging.handlers.RotatingFileHandler',
+                    'level': 'WARNING',
+                    'formatter': 'json',
+                    'filters': ['security_filter'],
+                    'filename': f'{log_dir}/security.log',
+                    'maxBytes': 50 * 1024 * 1024,  # 50MB
+                    'backupCount': 10,
+                    'encoding': 'utf-8'
+                },
+                'file_error': {
+                    'class': 'logging.handlers.RotatingFileHandler',
+                    'level': 'ERROR',
+                    'formatter': 'json',
+                    'filters': ['security_filter'],
+                    'filename': f'{log_dir}/error.log',
+                    'maxBytes': 50 * 1024 * 1024,  # 50MB
                 'backupCount': 10,
                 'encoding': 'utf-8'
             }
-        })
-        
-        # Update loggers to use file handlers
-        for logger_name in ['app', 'fastapi', 'uvicorn', 'sqlalchemy.engine', 'alembic']:
-            config['loggers'][logger_name]['handlers'].extend(['file_app', 'file_error'])
-        
-        config['loggers']['security']['handlers'].extend(['file_security', 'file_error'])
+            })
+            
+            # Update loggers to use file handlers
+            for logger_name in ['app', 'fastapi', 'uvicorn', 'sqlalchemy.engine', 'alembic']:
+                config['loggers'][logger_name]['handlers'].extend(['file_app', 'file_error'])
+            
+            config['loggers']['security']['handlers'].extend(['file_security', 'file_error'])
     
     return config
 
