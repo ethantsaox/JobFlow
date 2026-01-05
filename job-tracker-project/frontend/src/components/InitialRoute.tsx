@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import Welcome from '../pages/Welcome'
+import { loadDemoData, isDemoDataLoaded } from '../services/demoData'
 
 export default function InitialRoute() {
   const { user, loading, isAuthenticated, isGuestMode } = useAuth()
@@ -18,6 +19,10 @@ export default function InitialRoute() {
 
   // If user exists (either authenticated or guest), go to dashboard
   if (user && (isAuthenticated || isGuestMode)) {
+    // Auto-load demo data for guest users if not already loaded
+    if (isGuestMode && !isDemoDataLoaded()) {
+      loadDemoData()
+    }
     return <Navigate to="/dashboard" replace />
   }
 
