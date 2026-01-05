@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useDarkMode } from '../hooks/useDarkMode'
+import { isDemoDataLoaded } from '../services/demoData'
 
 export default function Navbar() {
   const { user, logout, isGuestMode, isAuthenticated, switchToGuestMode, switchToAuthenticatedMode, syncLocalDataToServer } = useAuth()
@@ -108,7 +109,7 @@ export default function Navbar() {
                 <span className="mr-1">
                   {isGuestMode ? '🏠' : '☁️'}
                 </span>
-                {isGuestMode ? 'Local Mode' : 'Cloud Mode'}
+                {isGuestMode ? (isDemoDataLoaded() ? 'Demo Mode' : 'Local Mode') : 'Cloud Mode'}
               </div>
 
               {/* Mode Tooltip */}
