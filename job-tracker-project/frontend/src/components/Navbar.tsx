@@ -57,9 +57,11 @@ export default function Navbar() {
             <div className="flex-shrink-0 flex items-center">
               <Link to="/dashboard" className="flex items-center">
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-2 transition-colors duration-300">
-                  <div className="h-8 w-32 bg-gradient-to-r from-blue-600 to-purple-600 rounded flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">JobFlow</span>
-                  </div>
+                  <img 
+                    src={isDark ? "/src/assets/jobflowdark.png" : "/src/assets/jobflowlight.png"}
+                    alt="JobFlow Logo" 
+                    className="h-8 w-auto transition-all duration-300"
+                  />
                 </div>
               </Link>
             </div>
