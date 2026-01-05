@@ -190,9 +190,7 @@ async def refresh_access_token(
         )
 
 @router.post("/forgot-password", response_model=ForgotPasswordResponse)
-@limiter.limit("3/15minutes")  # 3 requests per 15 minutes per IP
 async def forgot_password(
-    request: Request,
     forgot_request: ForgotPasswordRequest,
     db: Session = Depends(get_db)
 ):
@@ -234,9 +232,7 @@ async def forgot_password(
         )
 
 @router.post("/reset-password", response_model=ResetPasswordResponse)
-@limiter.limit("5/minute")  # 5 attempts per minute
 async def reset_password(
-    request: Request,
     reset_request: ResetPasswordRequest,
     db: Session = Depends(get_db)
 ):
