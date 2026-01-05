@@ -1,8 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from datetime import datetime, timedelta
 
 from app.core.database import get_db
@@ -29,12 +27,9 @@ from app.schemas.password_reset import ForgotPasswordRequest, ForgotPasswordResp
 from app.core.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-limiter = Limiter(key_func=get_remote_address)
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-@limiter.limit("5/minute")  # Rate limit registration attempts
 async def register(
-    request: Request,  # For rate limiting
     user_data: UserCreate,
     db: Session = Depends(get_db)
 ):
@@ -82,70 +77,48 @@ async def register(
     return UserResponse.model_validate(db_user)
 
 @router.post("/login", response_model=Token)
-@limiter.limit("5/minute")  # Stricter rate limit for login
 async def login(
-    request: Request,  # For rate limiting
     user_credentials: UserLogin,
     db: Session = Depends(get_db)
 ):
     """Authenticate user and return access token"""
     
+    # Simple authentication without rate limiting
+    user = db.query(User).filter(User.email == user_credentials.email).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Try secure password verification first, fallback to basic
     if SECURITY_AVAILABLE:
         password_security = get_password_security()
+        password_valid = password_security.verify_password(user_credentials.password, user.hashed_password)
+    else:
+        password_valid = verify_password(user_credentials.password, user.hashed_password)
+    
+    if not password_valid:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Inactive user account"
+        )
+    
+    # Create tokens
+    if SECURITY_AVAILABLE:
         jwt_handler = get_jwt_handler()
-        
-        # Check for account lockout
-        is_locked, remaining_seconds = password_security.is_account_locked(user_credentials.email)
-        if is_locked:
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail=f"Account temporarily locked due to failed login attempts. Try again in {remaining_seconds // 60} minutes."
-            )
-        
-        # Get user by email
-        user = db.query(User).filter(User.email == user_credentials.email).first()
-        
-        # Use secure password verification
-        if not user or not password_security.verify_password(user_credentials.password, user.hashed_password):
-            # Record failed attempt
-            password_security.record_failed_login(user_credentials.email)
-            
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect email or password",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        
-        if not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Inactive user account"
-            )
-        
-        # Clear failed login attempts on successful login
-        password_security.clear_failed_attempts(user_credentials.email)
-        
-        # Create secure tokens
         access_token = jwt_handler.create_access_token(data={"sub": str(user.id)})
         refresh_token = jwt_handler.create_refresh_token(str(user.id))
     else:
-        # Basic authentication
-        user = db.query(User).filter(User.email == user_credentials.email).first()
-        
-        if not user or not verify_password(user_credentials.password, user.hashed_password):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect email or password",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        
-        if not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Inactive user account"
-            )
-        
-        # Create basic tokens
         access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
         access_token = create_access_token(
             data={"sub": str(user.id)}, 
