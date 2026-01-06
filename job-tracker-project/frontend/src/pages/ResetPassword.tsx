@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useDarkMode } from '../hooks/useDarkMode'
+import jobflowDark from '../assets/jobflowdark.png'
+import jobflowLight from '../assets/jobflowlight.png'
 
 const resetPasswordSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters long'),
@@ -88,7 +90,7 @@ export default function ResetPassword() {
           <div className="text-center">
             <div className="mx-auto flex items-center justify-center">
               <img 
-                src={isDark ? "/src/assets/jobflowdark.png" : "/src/assets/jobflowlight.png"}
+                src={isDark ? jobflowDark : jobflowLight}
                 alt="JobFlow Logo" 
                 className="h-12 w-auto"
               />
@@ -131,7 +133,7 @@ export default function ResetPassword() {
           <div className="text-center">
             <div className="mx-auto flex items-center justify-center">
               <img 
-                src={isDark ? "/src/assets/jobflowdark.png" : "/src/assets/jobflowlight.png"}
+                src={isDark ? jobflowDark : jobflowLight}
                 alt="JobFlow Logo" 
                 className="h-12 w-auto"
               />
@@ -162,7 +164,7 @@ export default function ResetPassword() {
         <div>
           <div className="mx-auto flex items-center justify-center">
             <img 
-              src={isDark ? "/src/assets/jobflowdark.png" : "/src/assets/jobflowlight.png"}
+              src={isDark ? jobflowDark : jobflowLight}
               alt="JobFlow Logo" 
               className="h-12 w-auto"
             />

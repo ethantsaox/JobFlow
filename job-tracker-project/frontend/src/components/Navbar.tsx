@@ -3,6 +3,8 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useDarkMode } from '../hooks/useDarkMode'
 import { isDemoDataLoaded } from '../services/demoData'
+import jobflowDark from '../assets/jobflowdark.png'
+import jobflowLight from '../assets/jobflowlight.png'
 
 export default function Navbar() {
   const { user, logout, isGuestMode, isAuthenticated, switchToGuestMode, switchToAuthenticatedMode, syncLocalDataToServer } = useAuth()
@@ -58,7 +60,7 @@ export default function Navbar() {
               <Link to="/dashboard" className="flex items-center">
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-2 transition-colors duration-300">
                   <img 
-                    src={isDark ? "/src/assets/jobflowdark.png" : "/src/assets/jobflowlight.png"}
+                    src={isDark ? jobflowDark : jobflowLight}
                     alt="JobFlow Logo" 
                     className="h-8 w-auto transition-all duration-300"
                   />

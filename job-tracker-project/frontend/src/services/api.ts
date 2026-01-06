@@ -1,7 +1,9 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
 
 // Centralized API URL configuration
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// In production (like Vercel), don't default to localhost to avoid network permission prompts
+const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+export const API_BASE_URL = import.meta.env.VITE_API_URL || (isProduction ? '' : 'http://localhost:8000')
 
 // Create axios instance
 const api: AxiosInstance = axios.create({

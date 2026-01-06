@@ -115,6 +115,30 @@ class DataManager {
 
     // Initialize local storage in case it's needed
     LocalStorageService.initialize()
+    
+    // Auto-load demo data if in production and no data exists
+    if (this.currentMode === 'local' && !this.hasLocalData()) {
+      this.loadDemoDataIfNeeded()
+    }
+  }
+
+  private static hasLocalData(): boolean {
+    const apps = localStorage.getItem('jobtracker_applications')
+    return apps !== null && apps !== '[]'
+  }
+
+  private static loadDemoDataIfNeeded(): void {
+    // Import demo data dynamically to avoid circular dependencies
+    import('./demoData').then(({ loadDemoData, isDemoDataLoaded }) => {
+      // In production (like Vercel), always load demo data to ensure it's fresh
+      const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+      if (!isDemoDataLoaded() || isProduction) {
+        loadDemoData()
+        console.log('Demo data loaded automatically for frontend-only demo')
+      }
+    }).catch(error => {
+      console.error('Failed to load demo data:', error)
+    })
   }
 
   static onModeChange(callback: (mode: DataMode) => void): () => void {
@@ -150,7 +174,9 @@ class DataManager {
     if (this.currentMode === 'authenticated') {
       try {
         const token = AuthService.getToken()
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/analytics/goals`, {
+        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+        const apiUrl = import.meta.env.VITE_API_URL || (isProduction ? '' : 'http://localhost:8000')
+        const response = await fetch(`${apiUrl}/api/analytics/goals`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -364,7 +390,9 @@ class DataManager {
     if (this.currentMode === 'authenticated') {
       try {
         const token = AuthService.getToken()
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/social/achievements/me`, {
+        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+        const apiUrl = import.meta.env.VITE_API_URL || (isProduction ? '' : 'http://localhost:8000')
+        const response = await fetch(`${apiUrl}/api/social/achievements/me`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

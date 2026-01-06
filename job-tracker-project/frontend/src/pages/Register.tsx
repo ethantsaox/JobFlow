@@ -6,6 +6,8 @@ import { z } from 'zod'
 import { useAuth } from '../hooks/useAuth'
 import { useDarkMode } from '../hooks/useDarkMode'
 import type { RegisterFormData } from '../types/auth'
+import jobflowDark from '../assets/jobflowdark.png'
+import jobflowLight from '../assets/jobflowlight.png'
 
 const registerSchema = z
   .object({
@@ -67,7 +69,7 @@ export default function Register() {
         <div>
           <div className="mx-auto flex items-center justify-center">
             <img 
-              src={isDark ? "/src/assets/jobflowdark.png" : "/src/assets/jobflowlight.png"}
+              src={isDark ? jobflowDark : jobflowLight}
               alt="JobFlow Logo" 
               className="h-12 w-auto"
             />

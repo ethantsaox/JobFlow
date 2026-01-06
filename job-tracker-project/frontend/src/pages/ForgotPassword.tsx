@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useDarkMode } from '../hooks/useDarkMode'
+import jobflowDark from '../assets/jobflowdark.png'
+import jobflowLight from '../assets/jobflowlight.png'
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -61,7 +63,7 @@ export default function ForgotPassword() {
           <div className="text-center">
             <div className="mx-auto flex items-center justify-center">
               <img 
-                src={isDark ? "/src/assets/jobflowdark.png" : "/src/assets/jobflowlight.png"}
+                src={isDark ? jobflowDark : jobflowLight}
                 alt="JobFlow Logo" 
                 className="h-12 w-auto"
               />
@@ -103,7 +105,7 @@ export default function ForgotPassword() {
         <div>
           <div className="mx-auto flex items-center justify-center">
             <img 
-              src={isDark ? "/src/assets/jobflowdark.png" : "/src/assets/jobflowlight.png"}
+              src={isDark ? jobflowDark : jobflowLight}
               alt="JobFlow Logo" 
               className="h-12 w-auto"
             />

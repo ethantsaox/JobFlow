@@ -23,7 +23,7 @@ interface LocalJobApplication {
     size?: string
   }
   location?: string
-  status: 'applied' | 'screening' | 'interview' | 'offer' | 'rejected' | 'withdrawn'
+  status: 'applied' | 'screening' | 'interviewing' | 'offer' | 'rejected' | 'withdrawn'
   applied_date: string
   source_platform?: string
   source_url?: string
@@ -355,7 +355,7 @@ class LocalStorageService {
     }, {} as Record<string, number>)
 
     const interviewApplications = applications.filter(app => 
-      app.status === 'interview' || app.status === 'offer'
+      app.status === 'interviewing' || app.status === 'offer'
     )
     const interviewRate = applications.length > 0 
       ? Math.round((interviewApplications.length / applications.length) * 100)

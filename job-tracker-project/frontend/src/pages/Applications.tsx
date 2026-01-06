@@ -140,7 +140,7 @@ export default function Applications() {
         applied_date: new Date().toISOString(),
         company: {
           id: '', // Will be generated
-          name: formData.company,
+          name: formData.company_name,
         }
       })
       
@@ -164,7 +164,7 @@ export default function Applications() {
         ...formData,
         company: {
           id: selectedApplication.company?.id || '',
-          name: formData.company,
+          name: formData.company_name,
         }
       })
       
@@ -238,14 +238,7 @@ export default function Applications() {
   const bulkUpdateStatus = async (status: JobApplication['status']) => {
     try {
       const promises = Array.from(selectedApplications).map(id =>
-        fetch(`${API_BASE_URL}/api/job-applications/${id}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ status })
-        })
+        DataManager.updateApplication(id, { status })
       )
 
       await Promise.all(promises)
@@ -262,12 +255,7 @@ export default function Applications() {
 
     try {
       const promises = Array.from(selectedApplications).map(id =>
-        fetch(`${API_BASE_URL}/api/job-applications/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        })
+        DataManager.deleteApplication(id)
       )
 
       await Promise.all(promises)

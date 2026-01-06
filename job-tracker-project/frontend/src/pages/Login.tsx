@@ -6,6 +6,8 @@ import { z } from 'zod'
 import { useAuth } from '../hooks/useAuth'
 import { useDarkMode } from '../hooks/useDarkMode'
 import type { LoginFormData } from '../types/auth'
+import jobflowDark from '../assets/jobflowdark.png'
+import jobflowLight from '../assets/jobflowlight.png'
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -56,7 +58,7 @@ export default function Login() {
         <div>
           <div className="mx-auto flex items-center justify-center">
             <img 
-              src={isDark ? "/src/assets/jobflowdark.png" : "/src/assets/jobflowlight.png"}
+              src={isDark ? jobflowDark : jobflowLight}
               alt="JobFlow Logo" 
               className="h-12 w-auto"
             />
