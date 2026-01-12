@@ -336,7 +336,6 @@ I built JobFlow to solve my own problem: turning the chaos of job hunting into a
 **Connect with me:**
 - 💼 [LinkedIn](https://linkedin.com/in/ethantsao)
 - 🐙 [GitHub](https://github.com/ethantsao)
-- 📧 [Email](mailto:ethan@example.com)
 
 ---
 
@@ -381,14 +380,3 @@ I built JobFlow to solve my own problem: turning the chaos of job hunting into a
    - Create a CONTRIBUTING.md file
    - Add a LICENSE file (MIT recommended)
    - Create a docs/ folder with technical documentation
-
----
-
-**This README showcases:**
-- ✅ Technical complexity (full-stack + data pipeline + analytics)
-- ✅ Business impact (43% response rate, data-driven decisions)
-- ✅ Visual proof (7 app screenshots + Tableau dashboards)
-- ✅ Professional presentation (well-structured, comprehensive)
-- ✅ Personality (story of why you built it, learnings)
-
-**Want me to adjust any section or add more detail somewhere?** 🚀📊
