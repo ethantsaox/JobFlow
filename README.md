@@ -50,7 +50,7 @@ JobFlow/
 ## **🖼️ Application Screenshots**
 
 ### **Dashboard Overview**
-![Dashboard](/Users/ethantsao/job-tracker-project/docs/images/dashboard-overview.png)
+![Dashboard](docs/images/dashboard-overview.png)
 *Main dashboard showing application progress, streaks, and achievements*
 
 ### **Application Management**
