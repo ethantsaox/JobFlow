@@ -21,8 +21,10 @@ class JobApplication(Base):
     salary_max = Column(Numeric(10, 2), nullable=True)
     salary_text = Column(String, nullable=True)
     location = Column(String, nullable=True)
+    location_type = Column(String, nullable=True)  # on-site, remote, hybrid
+    salary_info = Column(String, nullable=True)  # raw salary text from job posting (e.g., "$25/hr - $30/hr")
     remote_ok = Column(Boolean, default=False, nullable=False)
-    job_type = Column(String, nullable=True)  # full-time, part-time, contract, etc.
+    job_type = Column(String, nullable=True)  # full-time, part-time, contract, internship, etc.
     
     # Application tracking
     status = Column(String, default="applied", nullable=False)  # applied, screening, interview, offer, rejected, withdrawn

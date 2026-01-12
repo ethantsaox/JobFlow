@@ -7,6 +7,8 @@ class CompanyBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     website: Optional[str] = Field(None, max_length=255)
     description: Optional[str] = None
+    industry: Optional[str] = Field(None, max_length=255)
+    size: Optional[str] = Field(None, max_length=255)
 
 class CompanyCreate(CompanyBase):
     pass
@@ -15,6 +17,8 @@ class CompanyUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     website: Optional[str] = Field(None, max_length=255)
     description: Optional[str] = None
+    industry: Optional[str] = Field(None, max_length=255)
+    size: Optional[str] = Field(None, max_length=255)
 
 class CompanyResponse(CompanyBase):
     id: UUID

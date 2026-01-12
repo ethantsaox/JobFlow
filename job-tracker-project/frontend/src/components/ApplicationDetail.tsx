@@ -9,8 +9,13 @@ interface JobApplication {
     id: string
     name: string
     website?: string
+    industry?: string
+    size?: string
   }
   location?: string
+  location_type?: string
+  salary_info?: string
+  job_type?: string
   status: 'applied' | 'screening' | 'interview' | 'offer' | 'rejected'
   applied_date: string
   source_platform?: string
@@ -217,6 +222,20 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{application.title}</h2>
             <p className="text-gray-600 dark:text-gray-300">{application.company?.name || 'Unknown Company'}</p>
+            {(application.company?.industry || application.company?.size) && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {application.company.industry && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                    {application.company.industry}
+                  </span>
+                )}
+                {application.company.size && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                    {application.company.size} employees
+                  </span>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex items-center space-x-3">
             {!isEditing && (
@@ -414,11 +433,47 @@ export default function ApplicationDetail({ applicationId, onClose, onUpdate }: 
                       <div>
                         <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Company</label>
                         <p className="text-gray-900 dark:text-gray-100">{application.company?.name || 'Unknown Company'}</p>
+                        {(application.company?.industry || application.company?.size || application.job_type || application.location_type || application.salary_info) && (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {application.company?.industry && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                {application.company.industry}
+                              </span>
+                            )}
+                            {application.company?.size && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                {application.company.size} employees
+                              </span>
+                            )}
+                            {application.job_type && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                {application.job_type}
+                              </span>
+                            )}
+                            {application.location_type && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                {application.location_type}
+                              </span>
+                            )}
+                            {application.salary_info && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                                {application.salary_info}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                       {application.location && (
                         <div>
                           <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Location</label>
-                          <p className="text-gray-900 dark:text-gray-100">📍 {application.location}</p>
+                          <div className="flex items-center space-x-2">
+                            <p className="text-gray-900 dark:text-gray-100">📍 {application.location}</p>
+                            {application.location_type && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                {application.location_type}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       )}
                       <div>

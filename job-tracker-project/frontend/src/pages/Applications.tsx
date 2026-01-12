@@ -16,6 +16,9 @@ interface JobApplication {
     size?: string
   }
   location?: string
+  location_type?: string
+  salary_info?: string
+  job_type?: string
   status: 'applied' | 'screening' | 'interview' | 'offer' | 'rejected'
   applied_date: string
   source_platform?: string
@@ -614,6 +617,35 @@ export default function Applications() {
                               <div className="text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
                                 {application.company?.name || 'Unknown Company'}
                               </div>
+                              {(application.company?.industry || application.company?.size || application.job_type || application.location_type || application.salary_info) && (
+                                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex flex-wrap gap-1">
+                                  {application.company?.industry && (
+                                    <span className="bg-blue-100 dark:bg-blue-700 text-blue-800 dark:text-blue-200 px-2 py-0.5 rounded text-xs">
+                                      {application.company.industry}
+                                    </span>
+                                  )}
+                                  {application.company?.size && (
+                                    <span className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-0.5 rounded text-xs">
+                                      {application.company.size} employees
+                                    </span>
+                                  )}
+                                  {application.job_type && (
+                                    <span className="bg-green-100 dark:bg-green-700 text-green-800 dark:text-green-200 px-2 py-0.5 rounded text-xs">
+                                      {application.job_type}
+                                    </span>
+                                  )}
+                                  {application.location_type && (
+                                    <span className="bg-purple-100 dark:bg-purple-700 text-purple-800 dark:text-purple-200 px-2 py-0.5 rounded text-xs">
+                                      {application.location_type}
+                                    </span>
+                                  )}
+                                  {application.salary_info && (
+                                    <span className="bg-orange-100 dark:bg-orange-700 text-orange-800 dark:text-orange-200 px-2 py-0.5 rounded text-xs">
+                                      {application.salary_info}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </td>
                           <td className="px-6 py-4">

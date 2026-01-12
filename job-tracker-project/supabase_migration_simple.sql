@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS streaks (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE(user_id, streak_type)
 );
-
+ju
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS ix_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS ix_job_applications_user_id ON job_applications(user_id);
@@ -114,7 +114,7 @@ CREATE INDEX IF NOT EXISTS ix_job_applications_status ON job_applications(status
 -- Create alembic version table
 CREATE TABLE IF NOT EXISTS alembic_version (
     version_num VARCHAR(32) NOT NULL,
-    CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
+    CONSTRAINT alembic_version_pkc PRIMARY KEY (vbersion_num)
 );
 
 -- Insert version

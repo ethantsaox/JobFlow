@@ -55,12 +55,14 @@ class JobExtractor {
             // For popup, use synchronous enhancement to avoid async issues
             const enhancedJobData = {
               ...jobData,
-              requirements: this.extractRequirements(),
-              benefits: this.extractBenefits(),
-              jobType: this.extractJobType(),
-              experienceLevel: this.extractExperienceLevel(),
-              companySize: this.extractCompanySize(),
-              industry: this.extractIndustry(),
+              requirements: jobData.requirements || this.extractRequirements(),
+              benefits: jobData.benefits || this.extractBenefits(),
+              job_type: jobData.job_type || this.extractLinkedInJobType(),
+              experienceLevel: jobData.experienceLevel || this.extractExperienceLevel(),
+              companySize: jobData.companySize || this.extractCompanySize(),
+              industry: jobData.industry || this.extractIndustry(),
+              salary_info: jobData.salary_info || this.extractLinkedInSalaryInfo(),
+              location_type: jobData.location_type || this.extractLinkedInLocationType(),
               appliedAt: new Date().toISOString()
             };
             
@@ -253,6 +255,7 @@ class JobExtractor {
       // Enhance job data with additional information
       const enhancedJobData = await this.enhanceJobData(jobData);
       
+      
       const response = await this.sendToBackground('TRACK_JOB', enhancedJobData);
       if (response.success) {
         // Mark job as tracked with current timestamp
@@ -311,13 +314,15 @@ class JobExtractor {
   async enhanceJobData(jobData) {
     const enhanced = { ...jobData };
     
-    // Extract additional details
-    enhanced.requirements = this.extractRequirements();
-    enhanced.benefits = this.extractBenefits();
-    enhanced.jobType = this.extractJobType();
-    enhanced.experienceLevel = this.extractExperienceLevel();
-    enhanced.companySize = this.extractCompanySize();
-    enhanced.industry = this.extractIndustry();
+    // Extract additional details (only if not already present)
+    enhanced.requirements = enhanced.requirements || this.extractRequirements();
+    enhanced.benefits = enhanced.benefits || this.extractBenefits();
+    enhanced.job_type = enhanced.job_type || this.extractLinkedInJobType();
+    enhanced.experienceLevel = enhanced.experienceLevel || this.extractExperienceLevel();
+    enhanced.companySize = enhanced.companySize || this.extractCompanySize();
+    enhanced.industry = enhanced.industry || this.extractIndustry();
+    enhanced.salary_info = enhanced.salary_info || this.extractLinkedInSalaryInfo();
+    enhanced.location_type = enhanced.location_type || this.extractLinkedInLocationType();
     
     // Add timestamp
     enhanced.appliedAt = new Date().toISOString();
@@ -381,6 +386,11 @@ class JobExtractor {
   }
 
   extractCompanySize() {
+    // First try LinkedIn-specific company info section
+    const linkedinSize = this.extractLinkedInCompanySize();
+    if (linkedinSize) return linkedinSize;
+    
+    // Fallback to generic text matching
     const text = document.body.innerText.toLowerCase();
     
     if (text.includes('startup') || text.includes('1-10') || text.includes('small')) return 'startup';
@@ -391,7 +401,82 @@ class JobExtractor {
     return null;
   }
 
+  extractLinkedInCompanySize() {
+    // Target the specific LinkedIn company info selectors based on screenshots
+    const companySizeSelectors = [
+      // Main company info section
+      '.jobs-company__company-information .jobs-company__company-information-container',
+      '.jobs-company__company-information',
+      // Alternative selectors for "About the company" section
+      '[data-test-id="company-information"]',
+      '.jobs-company__inline-information',
+      // Look for the specific pattern with employees
+      '.jobs-company__inline-information span[class*="jobs-company__inline-information"]'
+    ];
+
+    // Look for employee count patterns in company info sections
+    for (const selector of companySizeSelectors) {
+      const element = document.querySelector(selector);
+      if (element) {
+        const text = element.textContent;
+        const employeeMatch = this.parseEmployeeCount(text);
+        if (employeeMatch) return employeeMatch;
+      }
+    }
+
+    // Fallback: Look for employee patterns in the specific text from screenshots
+    const allElements = document.querySelectorAll('*');
+    for (const element of allElements) {
+      if (element.children.length === 0) { // Only text nodes
+        const text = element.textContent?.trim();
+        if (text && text.includes('employees') && text.length < 50) {
+          const employeeMatch = this.parseEmployeeCount(text);
+          if (employeeMatch) return employeeMatch;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  parseEmployeeCount(text) {
+    if (!text) return null;
+    
+    // Pattern matching for different employee count formats
+    const patterns = [
+      /(\d{1,3}(?:,\d{3})*)\+?\s*employees/i,           // "10,001+ employees"
+      /(\d+)\+?\s*employees/i,                          // "1000+ employees"  
+      /(\d{1,3}(?:,\d{3})*)\s*-\s*(\d{1,3}(?:,\d{3})*)\s*employees/i // "1,000-5,000 employees"
+    ];
+
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match) {
+        const count = parseInt(match[1].replace(/,/g, ''));
+        return this.categorizeCompanySize(count);
+      }
+    }
+
+    return null;
+  }
+
+  categorizeCompanySize(employeeCount) {
+    if (employeeCount < 11) return '1-10';
+    if (employeeCount < 51) return '11-50'; 
+    if (employeeCount < 201) return '51-200';
+    if (employeeCount < 501) return '201-500';
+    if (employeeCount < 1001) return '501-1000';
+    if (employeeCount < 5001) return '1001-5000';
+    if (employeeCount < 10001) return '5001-10000';
+    return '10001+';
+  }
+
   extractIndustry() {
+    // First try LinkedIn-specific company info section
+    const linkedinIndustry = this.extractLinkedInIndustry();
+    if (linkedinIndustry) return linkedinIndustry;
+    
+    // Fallback to generic text matching
     const text = document.body.innerText.toLowerCase();
     const industries = [
       'technology', 'software', 'fintech', 'finance', 'healthcare', 'biotech',
@@ -404,6 +489,247 @@ class JobExtractor {
         return industry;
       }
     }
+    return null;
+  }
+
+  extractLinkedInIndustry() {
+    // Target the LinkedIn company info section from screenshots
+    const industrySelectors = [
+      // Main company info section
+      '.jobs-company__company-information',
+      '.jobs-company__inline-information',
+      // About the company section
+      '[data-test-id="company-information"]',
+      // Company details
+      '.jobs-company__company-information-container'
+    ];
+
+    // Look for industry in the specific company info sections
+    for (const selector of industrySelectors) {
+      const element = document.querySelector(selector);
+      if (element) {
+        const industry = this.parseIndustryFromText(element.textContent);
+        if (industry) return industry;
+      }
+    }
+
+    // Fallback: Look for industry patterns in text elements near company size
+    const allElements = document.querySelectorAll('*');
+    for (const element of allElements) {
+      if (element.children.length === 0) { // Only text nodes
+        const text = element.textContent?.trim();
+        // Look for text that appears to be industry (before "employees")
+        if (text && text.length > 5 && text.length < 50 && 
+            !text.includes('employees') && 
+            !text.includes('followers') &&
+            this.looksLikeIndustry(text)) {
+          
+          const industry = this.parseIndustryFromText(text);
+          if (industry) return industry;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  parseIndustryFromText(text) {
+    if (!text) return null;
+    
+    // Comprehensive industry mapping for exact matches
+    const industryMappings = {
+      'software development': 'Software Development',
+      'software': 'Software',
+      'technology': 'Technology',
+      'information technology': 'Information Technology',
+      'computer software': 'Computer Software',
+      'internet': 'Internet',
+      'financial services': 'Financial Services',
+      'banking': 'Banking',
+      'fintech': 'FinTech',
+      'healthcare': 'Healthcare',
+      'biotechnology': 'Biotechnology',
+      'pharmaceuticals': 'Pharmaceuticals',
+      'education': 'Education',
+      'e-learning': 'E-Learning',
+      'retail': 'Retail',
+      'e-commerce': 'E-Commerce',
+      'manufacturing': 'Manufacturing',
+      'automotive': 'Automotive',
+      'aerospace': 'Aerospace',
+      'energy': 'Energy',
+      'oil & gas': 'Oil & Gas',
+      'real estate': 'Real Estate',
+      'construction': 'Construction',
+      'media': 'Media',
+      'entertainment': 'Entertainment',
+      'gaming': 'Gaming',
+      'telecommunications': 'Telecommunications',
+      'consulting': 'Consulting',
+      'professional services': 'Professional Services',
+      'marketing': 'Marketing',
+      'advertising': 'Advertising',
+      'food & beverage': 'Food & Beverage',
+      'hospitality': 'Hospitality',
+      'travel': 'Travel',
+      'logistics': 'Logistics',
+      'transportation': 'Transportation'
+    };
+
+    const lowerText = text.toLowerCase().trim();
+    
+    // Direct mapping match
+    if (industryMappings[lowerText]) {
+      return industryMappings[lowerText];
+    }
+    
+    // Partial matches for compound terms
+    for (const [key, value] of Object.entries(industryMappings)) {
+      if (lowerText.includes(key) || key.includes(lowerText)) {
+        return value;
+      }
+    }
+
+    return null;
+  }
+
+  looksLikeIndustry(text) {
+    // Industry text characteristics
+    const industryIndicators = [
+      /\b(development|technology|software|services|solutions)\b/i,
+      /\b(financial|banking|healthcare|education|retail)\b/i,
+      /\b(manufacturing|automotive|energy|media|consulting)\b/i
+    ];
+
+    // Exclude non-industry patterns
+    const excludePatterns = [
+      /followers/i,
+      /employees/i,
+      /linkedin/i,
+      /\d+/,  // Contains numbers
+      /follow/i,
+      /about/i,
+      /company/i
+    ];
+
+    return industryIndicators.some(pattern => pattern.test(text)) ||
+           (!excludePatterns.some(pattern => pattern.test(text)) && 
+            text.split(' ').length <= 3 && // Not too long
+            text.length > 3); // Not too short
+  }
+
+  extractLinkedInSalaryInfo() {
+    // Look for LinkedIn salary info in the job details buttons
+    const salarySelectors = [
+      'button[class*="artdeco-button"] strong',
+      '.job-details-fit-level-preferences button strong',
+      '.tvm__text.tvm__text--low-emphasis strong'
+    ];
+
+    for (const selector of salarySelectors) {
+      const elements = document.querySelectorAll(selector);
+      for (const element of elements) {
+        const text = element.textContent?.trim();
+        if (text && this.isSalaryText(text)) {
+          console.log('✅ Found salary info:', text);
+          return text;
+        }
+      }
+    }
+
+    // Fallback: Look for salary patterns in button text
+    const allButtons = document.querySelectorAll('button[class*="artdeco-button"]');
+    for (const button of allButtons) {
+      const text = button.textContent?.trim();
+      if (text && this.isSalaryText(text)) {
+        console.log('✅ Found salary info in button:', text);
+        return text;
+      }
+    }
+
+    return null;
+  }
+
+  isSalaryText(text) {
+    // Patterns for salary recognition
+    const salaryPatterns = [
+      /\$\d+\/hr\s*-\s*\$\d+\/hr/i,           // "$25/hr - $30/hr"
+      /\$\d{1,3}(?:,\d{3})*(?:\.\d{2})?(?:\s*-\s*\$\d{1,3}(?:,\d{3})*(?:\.\d{2})?)?(?:\s*\/\s*(hour|hr|year|annually|month))?/i,
+      /\d+k?\s*-\s*\d+k?(?:\s*\/\s*(year|annually))?/i
+    ];
+
+    return salaryPatterns.some(pattern => pattern.test(text));
+  }
+
+  extractLinkedInJobType() {
+    // Look for job type in LinkedIn job details buttons
+    const jobTypeSelectors = [
+      'button[class*="artdeco-button"] strong',
+      '.job-details-fit-level-preferences button strong',
+      '.tvm__text.tvm__text--low-emphasis strong'
+    ];
+
+    const jobTypes = ['full-time', 'part-time', 'contract', 'internship', 'temporary', 'volunteer'];
+
+    for (const selector of jobTypeSelectors) {
+      const elements = document.querySelectorAll(selector);
+      for (const element of elements) {
+        const text = element.textContent?.trim().toLowerCase();
+        if (text && jobTypes.includes(text)) {
+          console.log('✅ Found job type:', text);
+          return text;
+        }
+      }
+    }
+
+    // Fallback: Look for job type in button text
+    const allButtons = document.querySelectorAll('button[class*="artdeco-button"]');
+    for (const button of allButtons) {
+      const text = button.textContent?.trim().toLowerCase();
+      for (const jobType of jobTypes) {
+        if (text.includes(jobType)) {
+          console.log('✅ Found job type in button:', jobType);
+          return jobType;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  extractLinkedInLocationType() {
+    // Look for location type in LinkedIn job details buttons
+    const locationTypeSelectors = [
+      'button[class*="artdeco-button"] strong',
+      '.job-details-fit-level-preferences button strong', 
+      '.tvm__text.tvm__text--low-emphasis strong'
+    ];
+
+    const locationTypes = ['on-site', 'remote', 'hybrid'];
+
+    for (const selector of locationTypeSelectors) {
+      const elements = document.querySelectorAll(selector);
+      for (const element of elements) {
+        const text = element.textContent?.trim().toLowerCase();
+        if (text && locationTypes.includes(text)) {
+          console.log('✅ Found location type:', text);
+          return text;
+        }
+      }
+    }
+
+    // Fallback: Look for location type in button text
+    const allButtons = document.querySelectorAll('button[class*="artdeco-button"]');
+    for (const button of allButtons) {
+      const text = button.textContent?.trim().toLowerCase();
+      for (const locationType of locationTypes) {
+        if (text.includes(locationType)) {
+          console.log('✅ Found location type in button:', locationType);
+          return locationType;
+        }
+      }
+    }
+
     return null;
   }
 
@@ -487,6 +813,9 @@ class JobExtractor {
       company_name: company || 'Unknown Company',
       companyUrl: companyUrl || null,
       location: location || null,
+      location_type: this.extractLinkedInLocationType(),
+      salary_info: this.extractLinkedInSalaryInfo(),
+      job_type: this.extractLinkedInJobType(),
       description: cleanDescription,
       salary: this.extractSalary(document.body.innerText),
       sourceUrl: window.location.href,

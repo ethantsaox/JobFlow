@@ -13,6 +13,8 @@ class Company(Base):
     name = Column(String, nullable=False, index=True)
     website = Column(String, nullable=True)
     description = Column(Text, nullable=True)
+    industry = Column(String, nullable=True)
+    size = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 

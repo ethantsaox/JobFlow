@@ -28,16 +28,25 @@ async def create_job_application(
 ):
     """Create a new job application"""
     
+    
     # Get or create company
     company = db.query(Company).filter(Company.name == application_data.company_name).first()
     if not company:
         company = Company(
             name=application_data.company_name,
             website=application_data.company_website,
-            description=application_data.company_description
+            description=application_data.company_description,
+            industry=application_data.company_industry,
+            size=application_data.company_size
         )
         db.add(company)
         db.flush()  # Get the ID without committing
+    else:
+        # Update existing company with new info if not already set
+        if application_data.company_industry and not company.industry:
+            company.industry = application_data.company_industry
+        if application_data.company_size and not company.size:
+            company.size = application_data.company_size
     
     # Create job application
     db_application = JobApplication(
@@ -49,6 +58,8 @@ async def create_job_application(
         salary_min=application_data.salary_min,
         salary_max=application_data.salary_max,
         location=application_data.location,
+        location_type=application_data.location_type,
+        salary_info=application_data.salary_info,
         remote_ok=application_data.remote_ok,
         job_type=application_data.job_type,
         status=application_data.status or "applied",
