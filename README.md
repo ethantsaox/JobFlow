@@ -50,27 +50,27 @@ JobFlow/
 ## **🖼️ Application Screenshots**
 
 ### **Dashboard Overview**
-![Dashboard](docs/images/dashboard-overview.png)
+![Dashboard](job-tracker-project/docs/images/dashboard-overview.png)
 *Main dashboard showing application progress, streaks, and achievements*
 
 ### **Application Management**
-![Applications](path/to/screenshot3.png)
+![Applications](job-tracker-project/docs/images/applications-list.png)
 *Comprehensive application tracking with company details, salary info, and status updates*
 
 ### **Analytics Dashboard**
-![Analytics](path/to/screenshot4.png)
+![Analytics](job-tracker-project/docs/images/analytics-dashboard.png)
 *Deep insights into application timeline, status distribution, and success metrics*
 
 ### **Network & Achievements**
-![Network](path/to/screenshot5.png)
+![Network](job-tracker-project/docs/images/network-achievements.png)
 *Gamification features with milestone tracking and achievement system*
 
 ### **Application Details**
-![Details](path/to/screenshot6.png)
+![Details](job-tracker-project/docs/images/application-detail.png)
 *Detailed view of individual applications with notes and job descriptions*
 
 ### **LinkedIn Integration**
-![LinkedIn](path/to/screenshot7.png)
+![LinkedIn](job-tracker-project/docs/images/linkedin-integration.png)
 *Browser extension integration for one-click job tracking from LinkedIn*
 
 ---
