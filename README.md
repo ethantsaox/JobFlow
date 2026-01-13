@@ -227,7 +227,7 @@ I built JobFlow to solve my own problem: turning the chaos of job hunting into a
 
 - **Inspiration:** Frustrated by scattered job application tracking across spreadsheets
 - **Data Source:** My own 80+ job applications (Dec 2025 - Jan 2026)
-- **Tools:** React, FastAPI, PostgreSQL, Tableau, Python, lots of coffee ☕
+- **Tools:** React, FastAPI, PostgreSQL, Tableau, Python, lots of green tea 🍵
 
 ---
 
