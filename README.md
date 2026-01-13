@@ -145,12 +145,6 @@ JobFlow/
 - **Visualization:** Tableau Desktop 2025.3
 - **Exports:** CSV format for Tableau integration
 
-### **Deployment**
-- **Frontend:** Vercel
-- **Backend:** Railway / Render
-- **Database:** Railway PostgreSQL
-- **Version Control:** Git + GitHub
-
 ---
 
 ## **📊 Key Insights & Learnings**
