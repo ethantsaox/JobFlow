@@ -163,9 +163,8 @@ JobFlow/
 
 ### **Job Search Strategy**
 - **Target Profile:** 500-1K employee companies, hybrid roles, Software/Tech industry
-- **Skill Investment:** Mastered Python/SQL, then specialized in ETL for Data Engineering
+- **Skill Investment:** Master Python/SQL, then specialize in BI Tools for Data Analysis
 - **Application Velocity:** 2.7 apps/day average, peaking at 7 apps/day during active periods
-- **Response Optimization:** 43% response rate by targeting mid-sized companies
 
 ---
 
