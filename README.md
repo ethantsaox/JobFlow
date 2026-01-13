@@ -78,7 +78,7 @@ JobFlow/
 ## **📊 Tableau Dashboard**
 
 ### **Page 1: Market Overview**
-![Market Overview](job-tracker-project/docs/images/Market Intelligence.png)
+![Market Overview](job-tracker-project/docs/images/Market-Intelligence.png)
 
 **Key Insights:**
 - Data Engineer roles comprise 33% of the market
@@ -88,7 +88,7 @@ JobFlow/
 - Remote work accounts for 36% of opportunities
 
 ### **Page 2: Skills Intelligence**
-![Skills Intelligence](path/to/tableau2.png)
+![Skills Intelligence](job-tracker-project/docs/images/Skills-Intelligence.png)
 
 **Key Findings:**
 - **Universal Skills:** Python (75%) and SQL (70%) are non-negotiable
@@ -96,13 +96,28 @@ JobFlow/
 - **Data Engineering:** 65% require ETL, 50% require Snowflake
 - **Data Analyst:** 71% require Business Intelligence tools
 
-### **Page 3: Compensation Intelligence**
-![Compensation](path/to/tableau3.png)
+### **Page 3: Salary Breakdown**
+![Compensation](job-tracker-project/docs/images/Salary-Breakdown.png)
 
 **Salary Drivers:**
 - Mid-sized companies (500-1K employees) pay highest: $160K avg
 - Hybrid work commands 17% premium over remote
 - Full-time roles pay 14% more than contract positions
+
+### **Page 4: Industry Breakdown**
+![Industry Breakdown](job-tracker-project/docs/images/Industry-Breakdown.png)
+
+**Industry Insights:**
+- Software dominates at 63% of opportunities (50 positions)
+- Technology sector commands premium compensation at $135K average
+- Manufacturing emerging as secondary market at 11% (9 positions)
+- Consulting balances accessibility with competitive pay at $96K average
+
+**Strategic Recommendations:**
+- Target Software/Technology industries for 71% of market opportunities
+- Mid-sized tech companies offer optimal compensation ($160K average)
+- Pursue hybrid and on-site roles for 17% salary premium over remote
+- Develop Airflow/Snowflake expertise for Data Engineering differentiation
 
 ---
 
