@@ -195,17 +195,6 @@ JobFlow/
 
 ---
 
-## **📝 Project Timeline**
-
-- **Dec 2025:** Initial concept and architecture design
-- **Week 1-2:** Built React frontend with core tracking features
-- **Week 3:** Developed FastAPI backend with PostgreSQL integration
-- **Week 4:** Created Python ETL pipeline for analytics
-- **Jan 2026:** Built Tableau dashboards (4 pages, 15+ visualizations)
-- **Total Development Time:** ~40 hours over 5 weeks
-
----
-
 ## **🤝 Contributing**
 
 This is a personal project, but I'm open to suggestions! Feel free to:
@@ -229,8 +218,8 @@ Statistics & Data Science @ UCSB | Graduating June 2026
 I built JobFlow to solve my own problem: turning the chaos of job hunting into actionable data. This project combines my interests in full-stack development, data engineering, and visual analytics.
 
 **Connect with me:**
-- 💼 [LinkedIn](https://linkedin.com/in/ethantsao)
-- 🐙 [GitHub](https://github.com/ethantsao)
+- 💼 [LinkedIn](https://linkedin.com/in/ethandtsao)
+- 🐙 [GitHub](https://github.com/ethantsaox)
 
 ---
 
@@ -249,29 +238,3 @@ I built JobFlow to solve my own problem: turning the chaos of job hunting into a
 *Last Updated: January 2026*
 
 ---
-
-## **NEXT STEPS TO IMPLEMENT THIS:**
-
-1. **Save the README:**
-   ```bash
-   cd ~/job-tracker-project
-   # Copy the above content into README.md
-   ```
-
-2. **Add Screenshots:**
-   - Create a `/docs/images/` folder
-   - Save your 7 screenshots there
-   - Update the image paths in README
-
-3. **Push to GitHub:**
-   ```bash
-   git add README.md docs/
-   git commit -m "Add comprehensive README with screenshots"
-   git push origin main
-   ```
-
-4. **Optional Enhancements:**
-   - Add badges (GitHub stars, build status, license)
-   - Create a CONTRIBUTING.md file
-   - Add a LICENSE file (MIT recommended)
-   - Create a docs/ folder with technical documentation
