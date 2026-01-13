@@ -78,7 +78,7 @@ JobFlow/
 ## **📊 Tableau Dashboard**
 
 ### **Page 1: Market Overview**
-![Market Overview](path/to/tableau1.png)
+![Market Overview](job-tracker-project/docs/images/Market Intelligence.png)
 
 **Key Insights:**
 - Data Engineer roles comprise 33% of the market
