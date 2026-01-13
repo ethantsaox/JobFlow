@@ -2,8 +2,8 @@
 
 > A full-stack job tracking system with integrated market analytics dashboard built to optimize my data role job search strategy
 
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/ethantsao/JobFlow)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5)](https://linkedin.com/in/ethantsao)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/ethantsaox/JobFlow)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5)](https://linkedin.com/in/ethandtsao)
 
 ---
 
