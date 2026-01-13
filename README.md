@@ -9,7 +9,7 @@
 
 ## **🎯 Project Overview**
 
-**JobFlow** is a comprehensive job search intelligence platform I built to transform my job hunting process from reactive to data-driven. The system combines a full-stack application for tracking applications with an advanced analytics dashboard for market insights.
+**JobFlow** is a comprehensive job search intelligence platform I built with the help of AI to transform my job hunting process from reactive to data-driven. The system combines a full-stack application for tracking applications with an advanced analytics dashboard for market insights.
 
 **Key Achievement:** Tracked 80+ applications across 86 companies, performing in-depth analysis using advanced SQL queries and through Tableau dashboards.
 
