@@ -11,7 +11,7 @@
 
 **JobFlow** is a comprehensive job search intelligence platform I built with the help of AI to transform my job hunting process from reactive to data-driven. The system combines a full-stack application for tracking applications with an advanced analytics dashboard for market insights.
 
-**Key Achievement:** Tracked 80+ applications across 86 companies, performing in-depth analysis using advanced SQL queries and through Tableau dashboards.
+**Key Achievement:** Tracked 80+ applications across 76 companies, performing in-depth analysis using 8 SQL queries and 4-page Tableau dashboard.
 
 ---
 
@@ -153,7 +153,7 @@ FROM job_applications
 WHERE annual_salary IS NOT NULL;
 ```
 
-**Output:** 80 jobs, $129K average salary ($48K-$330K range)
+**Output:** 80 jobs, 76 unique companies, $129K average salary ($48K-$330K range)
 
 </details>
 
@@ -323,21 +323,21 @@ ORDER BY salary_premium DESC;
 ## **📊 Key Insights & Learnings**
 
 ### **Market Intelligence**
-1. **Skills Hierarchy:** Python + SQL are table stakes (70%+ of jobs)
-2. **Company Size Paradox:** Mid-sized firms pay 31% more than enterprises
-3. **Work Mode Economics:** Hybrid roles command 17% salary premium
-4. **Industry Concentration:** Software/Tech represents 71% of opportunities
+1. **Skills Hierarchy:** Python (75%) and SQL (70%) are table stakes across all data roles
+2. **Company Size Paradox:** Mid-sized firms (500-1K employees) pay 31% premium ($160K vs $122K)
+3. **Work Mode Economics:** Hybrid roles command 17% salary premium over remote positions
+4. **Industry Concentration:** Software/Tech represents 71% of data role opportunities
 
 ### **Technical Learnings**
-1. **Data Quality:** Salary parsing required handling 10+ different formats
+1. **Data Quality:** Salary parsing achieved 81% accuracy handling 10+ different formats
 2. **Job Classification:** Order matters - check specific categories before broad ones
 3. **Skill Extraction:** Simple regex outperformed complex NLP for structured data
 4. **Dashboard Performance:** Pre-aggregated data dramatically improved Tableau load times
 
 ### **Job Search Strategy**
 - **Target Profile:** 500-1K employee companies, hybrid roles, Software/Tech industry
-- **Skill Investment:** Master Python/SQL, then specialize in BI Tools for Data Analysis
-- **Application Velocity:** 2.7 apps/day average, peaking at 7 apps/day during active periods
+- **Skill Investment:** Master Python/SQL baseline, then specialize (BI Tools for Analysis, ETL/Snowflake for Engineering)
+- **Application Volume:** 80 applications across 76 companies over 35-day period (2.3/day average)
 
 ---
 
