@@ -361,15 +361,6 @@ ORDER BY salary_premium DESC;
 
 ---
 
-## **🤝 Contributing**
-
-This is a personal project, but I'm open to suggestions! Feel free to:
-- Open an issue for bugs or feature requests
-- Submit a pull request with improvements
-- Share your own job search data for anonymized analysis
-
----
-
 ## **📄 License**
 
 MIT License - feel free to use this project as inspiration for your own job search tools!
@@ -381,19 +372,9 @@ MIT License - feel free to use this project as inspiration for your own job sear
 **Ethan Tsao**  
 Statistics & Data Science @ UCSB | Graduating June 2026
 
-I built JobFlow to solve my own problem: turning the chaos of job hunting into actionable data. This project combines my interests in full-stack development, data engineering, and visual analytics.
-
 **Connect with me:**
 - 💼 [LinkedIn](https://linkedin.com/in/ethandtsao)
 - 🐙 [GitHub](https://github.com/ethantsaox)
-
----
-
-## **🙏 Acknowledgments**
-
-- **Inspiration:** Frustrated by scattered job application tracking across spreadsheets
-- **Data Source:** My own 80+ job applications (Dec 2025 - Jan 2026)
-- **Tools:** React, FastAPI, PostgreSQL, Tableau, Python, lots of green tea 🍵
 
 ---
 
