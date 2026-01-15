@@ -292,12 +292,6 @@ ORDER BY salary_premium DESC;
 
 </details>
 
-### **Full Query Set**
-
-📁 **Location:** [`/database/analytics_queries.sql`](database/analytics_queries.sql)
-
-All 8 queries are available in the repository with detailed comments explaining their purpose and expected outputs. These queries power the Tableau dashboards and can be run directly against the PostgreSQL database.
-
 ---
 
 ## **🛠️ Technical Stack**
