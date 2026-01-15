@@ -153,7 +153,7 @@ FROM job_applications
 WHERE annual_salary IS NOT NULL;
 ```
 
-**Output:** 80 jobs, 86 companies, $129K average salary ($48K-$330K range)
+**Output:** 80 jobs, $129K average salary ($48K-$330K range)
 
 </details>
 
