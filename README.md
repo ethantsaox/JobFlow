@@ -121,6 +121,185 @@ JobFlow/
 
 ---
 
+## **💻 SQL Analytics Queries**
+
+The market intelligence insights are powered by 8 core SQL queries analyzing job market patterns across 80+ applications.
+
+### **Query Overview**
+
+| Query | Purpose | Key Metrics |
+|-------|---------|-------------|
+| **Market Overview** | Dataset summary statistics | Total jobs, companies, salary range |
+| **Role Distribution** | Job category breakdown | Market share %, avg/median salary by role |
+| **Skills Demand** | Universal skill requirements | Percentage of jobs requiring each skill |
+| **Skills Heatmap** | Role-specific skill patterns | Skill requirements by job category |
+| **Company Size** | Compensation by company scale | Average salary across company sizes |
+| **Work Mode Analysis** | Remote/Hybrid/On-site trends | Market share % and salary by work mode |
+| **Industry Trends** | Sector concentration | Top 10 industries by job count |
+| **Skill-Salary Link** | High-value skills | Salary premium for specialized skills |
+
+### **Sample Queries**
+
+<details>
+<summary><b>Query 1: Market Overview</b></summary>
+```sql
+SELECT 
+    COUNT(*) as total_jobs_analyzed,
+    COUNT(DISTINCT company_name) as unique_companies,
+    ROUND(AVG(annual_salary), 0) as avg_salary,
+    MIN(annual_salary) as min_salary,
+    MAX(annual_salary) as max_salary
+FROM job_applications
+WHERE annual_salary IS NOT NULL;
+```
+
+**Output:** 80 jobs, 86 companies, $129K average salary ($48K-$330K range)
+
+</details>
+
+<details>
+<summary><b>Query 2: Role Distribution & Salary</b></summary>
+```sql
+SELECT 
+    job_category,
+    COUNT(*) as job_count,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 1) as market_share_pct,
+    ROUND(AVG(annual_salary), 0) as avg_salary,
+    ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY annual_salary), 0) as median_salary
+FROM job_applications
+WHERE annual_salary IS NOT NULL
+GROUP BY job_category
+ORDER BY job_count DESC;
+```
+
+**Insight:** Data Engineer roles dominate at 33% market share
+
+</details>
+
+<details>
+<summary><b>Query 3: Universal Skills Analysis</b></summary>
+```sql
+SELECT 
+    'Python' as skill,
+    SUM(skill_python) as jobs_requiring,
+    ROUND(100.0 * AVG(skill_python), 1) as percent_of_market
+FROM job_applications
+UNION ALL
+SELECT 'SQL', SUM(skill_sql), ROUND(100.0 * AVG(skill_sql), 1)
+FROM job_applications
+UNION ALL
+SELECT 'Machine Learning', SUM(skill_machine_learning), ROUND(100.0 * AVG(skill_machine_learning), 1)
+FROM job_applications
+-- [Additional skills...]
+ORDER BY jobs_requiring DESC;
+```
+
+**Finding:** Python (75%) and SQL (70%) are non-negotiable baseline skills
+
+</details>
+
+<details>
+<summary><b>Query 4: Skills Heatmap by Role</b></summary>
+```sql
+SELECT 
+    job_category,
+    ROUND(100.0 * AVG(skill_python), 0) as python_pct,
+    ROUND(100.0 * AVG(skill_sql), 0) as sql_pct,
+    ROUND(100.0 * AVG(skill_machine_learning), 0) as ml_pct,
+    ROUND(100.0 * AVG(skill_etl), 0) as etl_pct,
+    ROUND(100.0 * AVG(skill_business_intelligence), 0) as bi_pct
+FROM job_applications
+GROUP BY job_category
+ORDER BY job_category;
+```
+
+**Discovery:** 100% of Data Science roles require ML, 71% of Analyst roles need BI tools
+
+</details>
+
+<details>
+<summary><b>Query 5: Company Size Compensation Paradox</b></summary>
+```sql
+SELECT 
+    company_size,
+    COUNT(*) as job_count,
+    ROUND(AVG(annual_salary), 0) as avg_salary
+FROM job_applications
+WHERE company_size != 'Unknown' AND annual_salary IS NOT NULL
+GROUP BY company_size
+ORDER BY avg_salary DESC;
+```
+
+**Key Finding:** Mid-sized firms (500-1K) pay $160K—31% more than enterprises
+
+</details>
+
+<details>
+<summary><b>Query 6: Work Mode Economics</b></summary>
+```sql
+SELECT 
+    location_type,
+    COUNT(*) as job_count,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 1) as percent_of_market,
+    ROUND(AVG(annual_salary), 0) as avg_salary
+FROM job_applications
+WHERE location_type IS NOT NULL AND annual_salary IS NOT NULL
+GROUP BY location_type
+ORDER BY avg_salary DESC;
+```
+
+**Result:** Hybrid work commands 17% salary premium over remote positions
+
+</details>
+
+<details>
+<summary><b>Query 7: Industry Concentration</b></summary>
+```sql
+SELECT 
+    industry,
+    COUNT(*) as job_count,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 1) as market_share_pct,
+    ROUND(AVG(annual_salary), 0) as avg_salary
+FROM job_applications
+WHERE industry IS NOT NULL AND annual_salary IS NOT NULL
+GROUP BY industry
+ORDER BY job_count DESC
+LIMIT 10;
+```
+
+**Insight:** Software/Tech represents 71% of data role opportunities
+
+</details>
+
+<details>
+<summary><b>Query 8: Skill-Salary Correlation</b></summary>
+```sql
+SELECT 
+    'Snowflake' as skill,
+    ROUND(AVG(CASE WHEN skill_snowflake = 1 THEN annual_salary END), 0) as avg_with_skill,
+    ROUND(AVG(CASE WHEN skill_snowflake = 0 THEN annual_salary END), 0) as avg_without_skill,
+    ROUND(AVG(CASE WHEN skill_snowflake = 1 THEN annual_salary END) - 
+          AVG(CASE WHEN skill_snowflake = 0 THEN annual_salary END), 0) as salary_premium
+FROM job_applications
+WHERE annual_salary IS NOT NULL
+UNION ALL
+SELECT 'Airflow', [...], [...], [...]
+-- [Additional specialized skills...]
+ORDER BY salary_premium DESC;
+```
+
+**Discovery:** Snowflake/Airflow expertise correlates with $162K+ compensation
+
+</details>
+
+### **Full Query Set**
+
+📁 **Location:** [`/database/analytics_queries.sql`](database/analytics_queries.sql)
+
+All 8 queries are available in the repository with detailed comments explaining their purpose and expected outputs. These queries power the Tableau dashboards and can be run directly against the PostgreSQL database.
+
+---
+
 ## **🛠️ Technical Stack**
 
 ### **Frontend**
